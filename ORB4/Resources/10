@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="../css/main.css">
+    <script src="/jquery"></script>
+</head>
+
+<body style="overflow-y: auto;" onload="onStart()" oncontextmenu="return false">
+
+    <script>
+        function playSound(name) {
+            setTimeout(function () {
+                var request = new XMLHttpRequest();
+                request.open("GET", `/sounds/play?id=${name}`, false);
+                request.send();
+            }, 1);
+        }
+
+        function saveBeatmaps() {
+            var request = new XMLHttpRequest();
+            request.open("GET", `/engine/beatmaps/save`, false);
+            request.send();
+        }
+
+        var ranked = undefined;
+        var unranked = undefined;
+        var loved = undefined;
+
+        var previous = undefined;
+        function switchCategory(x) {
+            if (previous != undefined) {
+                previous.style.color = "#a0a0a0ad";
+            }
+
+            x.style.color = "rgb(28, 145, 223)";
+            previous = x;
+
+            $("#beatmaps").html("");
+
+            if (x.id == "ranked")
+                updateList('ranked');
+            else if (x.id == "unranked") {
+                updateList('unranked');
+            } else if (x.id == "loved") {
+                updateList('loved');
+            }
+        }
+
+        function downloadJson(link) {
+            var request = new XMLHttpRequest();
+            request.open("GET", link, false);
+            request.send();
+
+            return JSON.parse(request.responseText);
+        }
+
+        var nameG = undefined;
+        var working = false;
+
+        function updateList(name) {
+            if (working) {
+                return;
+            }
+
+            working = true;
+
+            nameG = name;
+            var beatmaps = document.getElementById("beatmaps");
+            beatmaps.innerHTML = '<span style="color: gray">Loading...</span>';
+
+            var array = undefined;
+            if (nameG == 'ranked') {
+                if (ranked == undefined) {
+                    ranked = downloadJson('/engine/beatmaps/ranked');
+                }
+
+                array = ranked;
+            } else if (nameG == 'unranked') {
+                if (unranked == undefined) {
+                    unranked = downloadJson('/engine/beatmaps/unranked');
+                }
+
+                array = unranked;
+            } else if (nameG == 'loved') {
+                if (loved == undefined) {
+                    loved = downloadJson('/engine/beatmaps/loved');
+                }
+
+                array = loved;
+            }
+
+            if (array.length == 0) {
+                var beatmaps = document.getElementById("beatmaps");
+                beatmaps.innerHTML = '<span style="color: gray">No beatmaps were found for the selected ranking status.</span>';
+                working = false;
+                return;
+            }
+
+            setTimeout(function () {
+                var beatmaps = document.getElementById("beatmaps");
+
+                beatmaps.innerHTML = '';
+
+                for (let i = array.length -1; i > -1; i--) {
+                    const element = array[i];
+
+                    var parent = document.createElement('div');
+                    parent.id = element.id;
+                    parent.className = 'beatmap-panel';
+                    parent.style = 'margin-bottom: 10px';
+
+                    var image = document.createElement('div');
+                    image.className = 'beatmap-panel-thumbnail';
+                    image.style = `background-image: url(/images/get_beatmap_image?id=${element.id}), url(/gifs/loading.gif)`;
+
+                    parent.appendChild(image);
+
+                    var information = document.createElement('div');
+                    information.className = 'beatmap-panel-information';
+
+                    parent.appendChild(information);
+
+                    var title = document.createElement('span');
+                    title.innerHTML = element.title;
+                    title.className = 'beatmap-panel-information-title';
+
+                    information.appendChild(title);
+
+                    var author = document.createElement('span');
+                    author.className = 'beatmap-panel-information-subtitle';
+                    author.innerHTML = element.artist + "&nbsp;";
+
+                    var creator = document.createElement('span');
+                    creator.style = 'font-size: 12px; color: #5f5f5f';
+                    creator.innerHTML = element.creator;
+
+                    author.appendChild(creator);
+
+                    information.appendChild(author);
+                    information.onmouseup = function () {
+                        if (event.button == 0) {
+                            openBeatmapset(this);
+                        }
+                    };
+
+                    beatmaps.appendChild(parent);
+                }
+                working = false;
+            }, 100);
+        }
+
+        function clearBeatmaps() {
+            var request = new XMLHttpRequest();
+            request.open("GET", `/engine/beatmaps/clear`, false);
+            request.send();
+
+            ranked = undefined;
+            unranked = undefined;
+            loved = undefined;
+
+            $('#beatmaps').html(`<span style="color: gray">Beatmaps history was deleted successfully.</span>`);
+        }
+
+        function openBeatmapset(x) {
+            var request = new XMLHttpRequest();
+            request.open("GET", `/utils/open_beatmapset?id=${x.parentNode.id}`, false);
+            request.send();
+        }
+
+        function onStart() {
+            previous = document.getElementById("ranked");
+            updateList('ranked');
+        }
+    </script>
+
+    <script>
+        var closing = false;
+
+        function closeFrame() {
+
+            if (closing) {
+                return;
+            }
+
+            playSound("Click");
+
+            var beatmapsFrame = window.parent.document.getElementById("beatmaps_frame");
+
+            closing = true;
+
+            setTimeout(function () {
+                beatmapsFrame.style.transition = "750ms ease-in-out";
+            }, 10);
+
+            setTimeout(() => {
+                beatmapsFrame.style.left = "-120vw";
+                beatmapsFrame.style.opacity = 0;
+            }, 20);
+
+            setTimeout(function () {
+                beatmapsFrame.parentNode.removeChild(beatmapsFrame);
+                closing = false;
+            }, 780);
+        }
+    </script>
+
+    <div style="position: absolute; padding: 30px; right:0; top: 0; z-index: 100;">
+        <button id="c_button" class="close-button" onmousedown="closeFrame()"></button>
+        <br>
+    </div>
+
+    <div id="settingsTitle" class="settings-title" style="opacity: 1;">Found beatmaps
+        <div style="display: inline-block;">
+            <button id="s_button" class="save-button" onmousedown="saveBeatmaps()"></button>
+            <br>
+        </div>
+        <div style="display: inline-block; margin-left: -10px">
+            <button id="cl_button" class="clear-button" onmousedown="clearBeatmaps()"></button>
+            <br>
+        </div>
+    </div>
+    <p style="
+    margin-top: -10px;
+    text-align: left;
+    margin-left: 25px;">
+        <span id="ranked" onmouseup="switchCategory(this)" style="cursor: pointer; color: rgb(28, 145, 223); transition: 0.2s ease-out;">Ranked &nbsp;</span>
+        <span id="unranked" onmouseup="switchCategory(this)" style="cursor: pointer; color: #a0a0a0ad; transition: 0.2s ease-out;">Unranked &nbsp;</span>
+        <span id="loved" onmouseup="switchCategory(this)" style="cursor: pointer; color: #a0a0a0ad; transition: 0.2s ease-out;">Loved</span>
+    </p>
+
+    <div id="beatmaps" style="margin-top: -5px; overflow-y: auto; text-align: center; padding: 30px;">
+        <!--
+        <span style="color: gray">No beatmaps were found for the selected ranking status.</span>
+        -->
+
+        <!-- <div class="beatmap-panel">
+            <div class="beatmap-panel-thumbnail"></div>
+            <div class="beatmap-panel-information">
+                <span class="beatmap-panel-information-title">The Big Black</span>
+                <span class="beatmap-panel-information-subtitle">The Quick Brown Fox - Blue Dragon</span>
+            </div>
+        </div> -->
+
+    </div>
+</body>
+
+</html>

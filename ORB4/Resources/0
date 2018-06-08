@@ -1,0 +1,258 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="../css/main.css">
+</head>
+
+<body onmousedown="releaseFocus()" oncontextmenu="return false">
+    <div style="position: fixed; padding: 20px; right:0; top: 0; z-index: 100;">
+        <button id="s_button" class="settings-button" style="background-color: transparent" onmousedown="settingsButtonClick(true)"></button>
+        <br>
+    </div>
+    <script>
+        addEventListener('keyup', function(e){
+            if (e.keyCode == 32){
+                search();
+            } else if (e.keyCode == 66) {
+				openBeatmaps(true);
+			} 
+        });
+
+        function releaseFocus(){
+            if (settings){
+                settingsButtonClick(false);
+            }
+        }
+        
+        var margin = 240;
+        setInterval(function () {
+            var label = document.getElementById("circleButtonLabel");
+            var rect = label.getBoundingClientRect();
+            var css = `calc(50% - ${rect.width / 2}px)`;
+            var css2 = `calc(${margin/2}px - ${rect.height / 2}px)`;
+            label.style.left = css;
+            label.style.marginTop = css2;
+        }, 20);
+
+        var searching = false;
+        var timeout = false;
+        
+        var settings = false;
+        var settingsFrameTimeout = false;
+        var settingsFrame;
+
+        function circleButtonClick(ev) {
+            switch (ev.button) {
+                case 0:
+                    search();
+                    break;
+                case 2:
+                    openBeatmaps(true);
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        function settingsButtonClick(canPlaySound) {
+            if (settingsFrameTimeout)
+                return;
+
+            if (canPlaySound)
+                playSound("Click");
+
+            if (!settings) {
+                settingsFrame = document.createElement("iframe");
+
+                settingsFrame.frameBorder = "0";
+                settingsFrame.src = "./settings.html";
+                settingsFrame.style.position = "fixed";
+                settingsFrame.width = "40%";
+                settingsFrame.height = "100%";
+                settingsFrame.style.zIndex = 110;
+                settingsFrame.border = "none";
+                settingsFrame.style.boxShadow = "-1px 6px 200px 2px #888888";
+                settingsFrame.style.left = "120vw";
+                settingsFrame.style.opacity = 0;
+
+                document.body.insertBefore(settingsFrame, document.body.firstChild);
+                settingsFrame.style.transition = "750ms ease-in-out";
+
+                settingsFrameTimeout = true;
+
+                setTimeout(function () {
+                    settingsFrame.style.left = "60vw";
+                    settingsFrame.style.opacity = 1;
+                }, 10)
+
+                setTimeout(function () {
+                    settingsFrameTimeout = false;
+                    settingsFrame.style.transition = "0ms ease-in-out";
+                }, 760)
+            } else {
+                settingsFrameTimeout = true;
+
+                setTimeout(function(){
+                    settingsFrame.style.transition = "750ms ease-in-out";
+                }, 10);
+
+                setTimeout(() => {
+                    settingsFrame.style.left = "120vw";
+                    settingsFrame.style.opacity = 0;
+                }, 20);
+
+                setTimeout(function () {
+                    settingsFrame.parentNode.removeChild(settingsFrame);
+                    settingsFrameTimeout = false;
+                }, 780);
+            }
+
+            settings = !settings;
+        }
+
+        var interval = undefined;
+        var canPlay = true;
+
+        function foundBeatmap() {
+            clearInterval(interval);
+            document.getElementById("circleButtonLabel").innerHTML = "Searching";
+
+            document.getElementById("f_button").className = "circle-button";
+            document.getElementById("f_button").innerHTML = "Search";
+            document.getElementById("circleButtonLabel").style.color = "white";
+            document.getElementById("circleButtonLabel").style.zIndex = "-100";
+            searching = !searching;
+        }
+
+        var beatmapsFrameTimeout = false;
+        var beatmapsFrame;
+
+        function openBeatmaps(canPlaySound){
+            if (beatmapsFrameTimeout)
+                return;
+
+            if (document.getElementById("beatmaps_frame") == null) {
+			
+            if (canPlaySound)
+                playSound("Click");
+
+                beatmapsFrame = document.createElement("iframe");
+                beatmapsFrame.src = "./foundbeatmaps.html";
+                beatmapsFrame.frameBorder = "0";
+                beatmapsFrame.style.position = "fixed";
+                beatmapsFrame.width = "100%";
+                beatmapsFrame.id = "beatmaps_frame";
+                beatmapsFrame.height = "100%";
+                beatmapsFrame.style.zIndex = 120;
+                beatmapsFrame.border = "none";
+                beatmapsFrame.style.boxShadow = "-1px 6px 200px 2px #888888";
+                beatmapsFrame.style.left = "-120vw";
+                beatmapsFrame.style.opacity = 0;
+
+                document.body.insertBefore(beatmapsFrame, document.body.firstChild);
+                beatmapsFrame.style.transition = "750ms ease-in-out";
+
+                beatmapsFrameTimeout = true;
+
+                setTimeout(function () {
+                    beatmapsFrame.style.left = "0";
+                    beatmapsFrame.style.opacity = 1;
+                }, 10)
+
+                setTimeout(function () {
+                    settingsFrameTimeout = false;
+                    beatmapsFrame.style.transition = "0ms ease-in-out";
+                    beatmapsFrameTimeout = false;
+                }, 760)
+            }
+        }
+
+        function playSound(name){
+            setTimeout(function(){
+                var request = new XMLHttpRequest();
+                    request.open("GET", `/sounds/play?id=${name}`, false);
+                    request.send();
+            }, 1);
+        }
+
+        function search() {
+            if (timeout) {
+                return;
+            }
+
+            playSound("Click");
+
+            timeout = true;
+            setTimeout(function () {
+                if (!searching) {
+                    document.getElementById("f_button").className = "circle-button animation";
+                    document.getElementById("f_button").innerHTML = "";
+                    document.getElementById("circleButtonLabel").style.color = "rgb(28, 145, 223)";
+                    document.getElementById("circleButtonLabel").style.zIndex = "50";
+
+                    setTimeout(function () {
+                        var request = new XMLHttpRequest();
+                        request.open("GET", "/engine/start", false);
+                        request.send();
+                        interval = setInterval(function () {
+                            var request2 = new XMLHttpRequest();
+
+                            request2.open("GET", "/engine/status", false);
+                            request2.send();
+
+                            if (request2.responseText != "Stopped") {
+                                document.getElementById("circleButtonLabel").innerHTML = request2.responseText;
+                            }
+                            else 
+							{
+                                foundBeatmap();
+                            }
+                        }, 500);
+                    }, 100)
+                } else {
+                    var request = new XMLHttpRequest();
+                    request.open("GET", "/engine/stop", false);
+                    request.send();
+
+                    clearInterval(interval);
+                    document.getElementById("circleButtonLabel").innerHTML = "Searching";
+
+                    document.getElementById("f_button").className = "circle-button";
+                    document.getElementById("f_button").innerHTML = "Search";
+                    document.getElementById("circleButtonLabel").style.color = "white";
+                    document.getElementById("circleButtonLabel").style.zIndex = "-100";
+
+                    if (request.responseText == "Beatmaps_viewer"){
+                        openBeatmaps(false);
+                    }
+                }
+
+                searching = !searching;
+                timeout = false;
+            }, 200);
+
+        }
+
+    </script>
+
+    <div id="mainContainer" style="transition: 1s ease-out;">
+        <span class="version" id="versionLabel"></span>
+        <div>
+            <span class="main-bar title">ORB</span>
+            <br>
+            <span class="main-bar subtitle">Osu! Random Beatmap</span>
+            <br>
+            <br>
+            <br>
+        </div>
+        <div>
+            <button id="f_button" class="circle-button" style=" background-color:white;" onmousedown="circleButtonClick(event)">Search</button>
+            <span class="circle-button-text" id="circleButtonLabel" onmousedown="circleButtonClick(event)" style="color: white; z-index: -100">Searching</span>
+        </div>
+    </div>
+</body>
+
+</html>

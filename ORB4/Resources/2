@@ -1,0 +1,389 @@
+body {
+    overflow-x: hidden;
+    overflow-y: hidden;
+    background-color: white;
+    color: black;
+    font-size: 16px;
+    text-align: center;
+    user-select: none;
+    cursor: default;
+    font-family: NotoRegular;
+    margin: 0;
+    height: 100vh;
+}
+
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    margin: 0;
+}
+
+input[type=number]:disabled {
+    color: rgb(107, 107, 107);
+    border-bottom: 1px solid rgba(20, 95, 145, 0.445);
+    background-color: white;
+}
+
+input[type=number] {
+    outline: 0;
+    border-top: 0px;
+    box-sizing: border-box;
+    border-left: 0px;
+    border-right: 0px;
+    font-family: NotoRegular;
+    width: 100px;
+    border-bottom: 1px solid rgb(28, 145, 223);
+    transition: 100ms ease-in-out;
+}
+
+.beatmap-panel-information-title{
+    margin-top: 5.5px;
+    margin-left: 10px;
+    font-size: 27px;
+    white-space: nowrap !important;
+    text-overflow: ellipsis !important;
+    overflow: hidden !important;
+}
+
+.beatmap-panel-information-subtitle{
+    margin-left: 10px;
+    white-space: nowrap !important;
+    text-overflow: ellipsis !important;
+    overflow: hidden !important;
+}
+
+.beatmap-panel-information{
+    overflow: hidden !important;
+    flex: 1;
+    display: flex;
+    flex-direction:  column;
+}
+
+.beatmap-panel-thumbnail{
+    background-repeat: no-repeat;
+    width: 150px;
+    height: 100%;
+    display: block;
+    vertical-align: top;
+    background-position: center;
+    background-size: cover;
+}
+
+.beatmap-panel{
+    cursor: pointer;
+    display: flex;
+    overflow: hidden;
+    text-align: left;
+    box-shadow: 1px 1px 15px -5px rgba(0,0,0,0.57);
+    border-radius: 15px;
+    border-style: solid;
+    border-color: #999999;
+    border-width: 0.5px;
+    width: 100%;
+    height: 75px;
+    transition: 0.5s ease-in-out;
+}
+
+.beatmap-panel:hover{
+    box-shadow: 1px 1px 15px -2.5px rgba(0,0,0,0.57);
+}
+
+.tooltip {
+    transition: 100ms ease-in;
+    position: relative;
+    display: inline-block;
+}
+
+hr {
+    display: block;
+    height: 1px;
+    border: 0;
+    border-top: 1px solid rgba(20, 95, 145, 0.445);
+    margin: 1em 0;
+    padding: 0;
+}
+
+.tooltip .tooltiptext {
+    transition: 100ms ease-in;
+    width: 120px;
+    background-color: black;
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 5px 0;
+    opacity: 0;
+    /* Position the tooltip */
+    position: absolute;
+    z-index: 1;
+    bottom: 100%;
+    left: 50%;
+    margin-left: -60px;
+}
+
+.tooltip:hover .tooltiptext {
+    transition: 100ms ease-in;
+    opacity: 0.90;
+}
+
+.clear-button{
+    border: 0px solid rgb(28, 145, 223);
+    background-color: rgb(28, 145, 223);
+    -webkit-mask-size: 105%;
+    -webkit-mask-image: url(svg/clear.svg);
+    background-repeat: no-repeat;
+    background-size: contain;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    width: 28px;
+    height: 30px;
+    -webkit-mask-repeat: no-repeat;
+    outline: none;
+    cursor: pointer;
+}
+
+.save-button{
+    border: 0px solid rgb(28, 145, 223);
+    background-color: rgb(28, 145, 223);
+    -webkit-mask-size: 105%;
+    -webkit-mask-image: url(svg/save.svg);
+    background-repeat: no-repeat;
+    background-size: contain;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    width: 30px;
+    height: 30px;
+    outline: none;
+    cursor: pointer;
+}
+
+.close-button{
+    border: 0px solid rgb(28, 145, 223);
+    background-color: rgb(28, 145, 223);
+    mask-image: url(svg/close-icon.svg);
+    -webkit-mask-image: url(svg/close-icon.svg);
+    background-repeat: no-repeat;
+    background-size: contain;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    width: 30px;
+    height: 30px;
+    outline: none;
+    cursor: pointer;
+}
+
+.settings-button {
+    border: 0px solid rgb(28, 145, 223);
+    background-color: white;
+    background-image: url(svg/settings-icon.svg);
+    background-repeat: no-repeat;
+    background-size: contain;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    width: 50px;
+    height: 50px;
+    outline: none;
+    cursor: pointer;
+    transform: rotate(0deg);
+    transition: 0.5s ease-in-out;
+}
+
+    .settings-button:hover {
+        transform: rotate(90deg);
+        transition: 0.5s ease-in-out;
+    }
+
+
+.main-bar.title {
+    font-size: 5em;
+    font-family: NotoThin;
+}
+
+.main-bar.subtitle {
+    font-size: 20px;
+    font-family: NotoLight;
+}
+
+.settings-title {
+    text-align: left;
+    color: rgb(28, 145, 223);
+    padding: 20px 20px 20px 25px;
+    font-size: 35px;
+    font-family: NotoLight;
+    transition: 1000ms ease-in-out;
+    opacity: 0;
+}
+
+.settings-group {
+    text-align: left;
+    color: rgb(28, 145, 223);
+    padding-left: 25px;
+    font-size: 20px;
+    font-family: NotoRegular;
+    transition: 1000ms ease-in-out;
+    opacity: 1;
+}
+
+.setting {
+    color: black;
+    font-size: 16px;
+    font-family: NotoRegular;
+    padding-left: 25px;
+    text-align: left;
+}
+
+.setting input[type=password]:focus {
+        border-bottom: 1px solid rgb(20, 98, 150);
+    }
+
+    .setting input[type=password] {
+        outline: 0;
+        border-top: 0px;
+        box-sizing: border-box;
+        border-left: 0px;
+        border-right: 0px;
+        font-family: NotoRegular;
+        border-bottom: 1px solid rgb(28, 145, 223);
+        transition: 100ms ease-in-out;
+    }
+
+.circle-button {
+    font-family: NotoRegular;
+    font-size: 27.5px;
+    background-color: white;
+    border: 3px solid rgb(28, 145, 223);
+    border-radius: 50%;
+    color: rgb(28, 145, 223);
+    padding: 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    width: 235px;
+    height: 235px;
+    margin: 4px 2px;
+    outline: none;
+    cursor: pointer;
+    transition: 200ms ease-in;
+}
+
+.circle-button.animation {
+    border: 3px solid white;
+    border-top: 3px solid rgb(28, 145, 223);
+    border-right: 3px solid rgb(28, 145, 223);
+    width: 235px;
+    height: 235px;
+    animation: spin 2s cubic-bezier(.68,-0.55,.27,1.55) infinite;
+}
+
+.circle-button-text {
+    position: fixed;
+    font-family: NotoRegular;
+    font-size: 25px;
+    left: calc(50% - 58.2px);
+    margin-top: 105px;
+    cursor: pointer;
+}
+
+
+@-webkit-keyframes spin {
+    0% {
+        -webkit-transform: rotate(0deg);
+    }
+
+    100% {
+        -webkit-transform: rotate(360deg);
+    }
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.version {
+    font-size: 15px;
+    font-family: NotoRegular;
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    padding: 7.5px;
+}
+
+@font-face {
+    font-family: NotoLight;
+    src: url(fonts/NotoSans-Light.ttf);
+}
+
+@font-face {
+    font-family: NotoRegular;
+    src: url(fonts/NotoSans-Regular.ttf);
+}
+
+@font-face {
+    font-family: NotoThin;
+    src: url(fonts/NotoSans-Thin.ttf);
+}
+
+.onoffswitch {
+    position: relative;
+    width: 41px;
+    display: inline-block;
+    vertical-align: middle;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+}
+
+.onoffswitch-checkbox {
+    display: none;
+}
+
+.onoffswitch-label {
+    display: block;
+    overflow: hidden;
+    cursor: pointer;
+    height: 16px;
+    padding: 0;
+    line-height: 16px;
+    border: 2px solid #1C91DF;
+    border-radius: 16px;
+    background-color: #FFFFFF;
+    transition: background-color 0.1s ease-in;
+}
+
+    .onoffswitch-label:before {
+        content: "";
+        display: block;
+        width: 16px;
+        margin: 0px;
+        background: #FFFFFF;
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        right: 23px;
+        border: 2px solid #1C91DF;
+        border-radius: 16px;
+        transition: all 0.1s ease-in 0s;
+    }
+
+.onoffswitch-checkbox:checked + .onoffswitch-label {
+    background-color: #1C91DF;
+}
+
+    .onoffswitch-checkbox:checked + .onoffswitch-label, .onoffswitch-checkbox:checked + .onoffswitch-label:before {
+        border-color: #1C91DF;
+    }
+
+        .onoffswitch-checkbox:checked + .onoffswitch-label:before {
+            right: 0px;
+        }
