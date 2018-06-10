@@ -21,6 +21,11 @@ namespace ORB4.Updater
 
         private void MainWindow_Load(object sender, EventArgs e)
         {
+            if (MessageBox.Show("Please, read the following license which this software is distributed with and press YES if you want to proceed or NO if don't want to. \n\n --------------- \n\n" + Properties.Resources.License, "License", MessageBoxButtons.YesNo) == DialogResult.No)
+            { 
+                Environment.Exit(0);
+            }
+                
             label1.Location = new Point((this.Width - label1.Width) / 2 - 9, label1.Location.Y);
             label2.Location = new Point((this.Width - label2.Width) / 2 - 9, label2.Location.Y);
             this.Icon = Properties.Resources.Main;

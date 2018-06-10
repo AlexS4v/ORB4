@@ -95,6 +95,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Main.ico" />
+    <None Include="Resources\License.txt" />
     <None Include="Resources\Main.ico" />
   </ItemGroup>
   <ItemGroup>
