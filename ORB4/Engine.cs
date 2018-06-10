@@ -485,7 +485,9 @@ namespace ORB4
                                         }
                                     }
 
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
                                     ThumbnailsDownloader.MainThumbnailsDownloader.DownloadThumbnailAsync(beatmap.BeatmapsetId);
+#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 
                                     if ((int)beatmap.RankStatus < 0)
                                     {
@@ -511,7 +513,9 @@ namespace ORB4
                                 _processedBeatmaps.Add(beatmap.BeatmapsetId);
                                 _foundCount++;
 
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
                                 ThumbnailsDownloader.MainThumbnailsDownloader.DownloadThumbnailAsync(beatmap.BeatmapsetId);
+#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 
                                 if ((int)beatmap.RankStatus < 0)
                                 {

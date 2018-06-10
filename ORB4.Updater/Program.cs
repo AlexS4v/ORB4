@@ -16,7 +16,7 @@ namespace ORB4.Updater
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new MainWindow());
+            Application.Run(new MainWindow(new Install()));
         }
     }
 }

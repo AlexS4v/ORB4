@@ -7,13 +7,15 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using IWshRuntimeLibrary;
 
 namespace ORB4.Updater
 {
-    public partial class MainWindow : Form
+    partial class MainWindow : Form
     {
-        public MainWindow()
+        public MainWindow(Process process)
         {
+            InstallationProcess = process;
             InitializeComponent();
         }
 
@@ -22,22 +24,76 @@ namespace ORB4.Updater
             label1.Location = new Point((this.Width - label1.Width) / 2 - 9, label1.Location.Y);
             label2.Location = new Point((this.Width - label2.Width) / 2 - 9, label2.Location.Y);
             this.Icon = Properties.Resources.Main;
-            install = new Install();
-            Timer.Start();
+
+            InstallationProcess.OnInstallationFinish += InstallationFinish;
         }
 
-        Install install;
+        private void InstallationFinish(object sender, EventArgs e)
+        {
+            this.Invoke(new Action(() => { 
+                Timer.Stop();
+                button1.Text = "Installed";
+
+                MessageBox.Show("ORB was successfully installed. We hope you'll enjoy our program!", 
+                    "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                Environment.Exit(0);
+            }));
+        }
+
+        private void InstallationError(object sender, EventArgs e)
+        {
+            button1.Text = "An error occurred";
+        }
+
+        Process InstallationProcess { get; set; }
 
         private void button1_Click(object sender, EventArgs e)
         {
-            Task.Factory.StartNew(install.Start);
+            System.Windows.Forms.FolderBrowserDialog dialog = new System.Windows.Forms.FolderBrowserDialog();
+            if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                InstallationProcess.Path = dialog.SelectedPath;
+            }
+            else
+            {
+                return;
+            }
+
+            Timer.Start();
+            Task.Factory.StartNew(InstallationProcess.Start);
             button1.Enabled = false;
         }
 
         private void Timer_Tick(object sender, EventArgs e)
         {
-            progressBar1.Value = install.Percentage;
-            button1.Text = install.CurrentDescription;
+            progressBar1.Value =InstallationProcess.Percentage;
+            button1.Text = InstallationProcess.CurrentDescription + $" {((double)InstallationProcess.Percentage /10000.0)*100}%";
+        }
+
+        private void MainWindow_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            if (InstallationProcess.Running) {
+                if (InstallationProcess.CurrentDescription.Contains("Rollback requested..."))
+                {
+                    e.Cancel = true;
+                    return;
+                }
+
+                if (MessageBox.Show("Are you sure to stop the current operation?", 
+                    "Question", MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation) == DialogResult.Yes)
+                {
+                    e.Cancel = true;
+
+                    InstallationProcess.CancellationTokenSource.Cancel();
+                    InstallationProcess.CurrentDescription = "Rollback requested...";
+                    this.ControlBox = false;
+                }
+                else
+                {
+                    e.Cancel = true;
+                }
+            }
         }
     }
 }
