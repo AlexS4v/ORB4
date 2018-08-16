@@ -38,7 +38,7 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 600);
             this.Name = "MainWindow";
-            this.Text = "Osu! Random Beatmap";
+            this.Text = $"Osu! Random Beatmap - {Engine.Version}";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.OnClosing);
             this.Load += new System.EventHandler(this.MainWindow_Load);
             this.FormClosed += OnClosed; ;

@@ -30,7 +30,7 @@ namespace ORB4
         public async Task Start()
         {
             Log(LogTypes.Info, $"Osu! Random Beatmap - {Engine.Version}");
-            Log(LogTypes.Info, $"The main logger was started.");
+            Log(LogTypes.Info, $"The main logger has been started.");
 
             _running = true;
             _queueUpdaterRunning = true;

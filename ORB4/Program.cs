@@ -20,6 +20,8 @@ namespace ORB4
             if (!System.IO.Directory.Exists($"{Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}\\ORB"))
                 System.IO.Directory.CreateDirectory($"{Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}\\ORB\\Private");
 
+            System.IO.File.WriteAllText($"{Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}\\ORB\\Version", Engine.Version, System.Text.Encoding.ASCII);
+
             Logger.MainLogger = new Logger();
             Logger.MainLogger.Start();
 

@@ -36,17 +36,29 @@ namespace ORB4.Updater
             Running = true;
             foreach (var op in Operations)
             {
-                Console.WriteLine(op.Name);
-                CurrentDescription = op.Description;
-                _previousPercentage = Percentage;
-                var result = Task.Factory.StartNew(() => op.Main.Invoke().GetAwaiter().GetResult());
-                await result;
+                if (Running)
+                {
+                    Console.WriteLine(op.Name);
+                    CurrentDescription = op.Description;
+                    _previousPercentage = Percentage;
+                    var result = Task.Factory.StartNew(() => op.Main.Invoke().GetAwaiter().GetResult());
+                    await result;
+                }
+                else
+                    break;
             }
+
+            await Task.Delay(1000);
 
             await Clear();
 
             Running = false;
             OnInstallationFinish.Invoke(this, new EventArgs());
+        }
+
+        public void AddRollbackOperation(Action action)
+        {
+            RollbackOperations.Add(action);
         }
 
         public event EventHandler<EventArgs> OnInstallationFinish;

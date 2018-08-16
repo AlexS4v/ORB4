@@ -50,7 +50,8 @@
                     search();
                     break;
                 case 2:
-                    openBeatmaps(true);
+                    if (!searching)
+                        openBeatmaps(true);
                     break;
                 default:
                     break;
@@ -173,7 +174,7 @@
         function playSound(name){
             setTimeout(function(){
                 var request = new XMLHttpRequest();
-                    request.open("GET", `/sounds/play?id=${name}`, false);
+                    request.open("GET", `/sounds/play?id=${name}`, true);
                     request.send();
             }, 1);
         }

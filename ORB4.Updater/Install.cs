@@ -8,16 +8,64 @@ using IWshRuntimeLibrary;
 using System.Threading.Tasks;
 using Microsoft.Win32;
 using System.Diagnostics;
+using System.Security.Cryptography;
 
 namespace ORB4.Updater
 {
     class Utils
     {
+        public static async Task CloseProcesses(string hash, string path)
+        {
+            var processes = System.Diagnostics.Process.GetProcesses();
+
+            foreach (var process in processes)
+            {
+                try
+                {
+                    if (CalculateSHA512FromPath(process.MainModule.FileName) == hash)
+                    {
+                        if (process.HasExited)
+                            continue;
+
+                        process.CloseMainWindow();
+                        await Task.Delay(3000);
+
+                        if (!process.HasExited)
+                            process.Kill();
+                    }
+                }
+                catch { continue; }
+            } 
+        }
+
         public static string Reverse(string s)
         {
             char[] charArray = s.ToCharArray();
             Array.Reverse(charArray);
             return new string(charArray);
+        }
+
+        public static string CalculateSHA512FromPath(string path)
+        {
+            using (var algorithm = SHA512.Create())
+            {
+                byte[] hash = algorithm.ComputeHash(new System.IO.FileStream(path, System.IO.FileMode.Open, System.IO.FileAccess.Read));
+                return BitConverter.ToString(hash).Replace("-", string.Empty).ToLower();
+            }
+        }
+
+        public static string[] GetAllFilesFromPath(string path)
+        {
+            List<string> files = new List<string>();
+            files.AddRange(System.IO.Directory.GetFiles(path));
+
+            string[] dirs = System.IO.Directory.GetDirectories(path);
+            foreach (var dir in dirs)
+            {
+                files.AddRange(GetAllFilesFromPath(dir));
+            }
+
+            return files.ToArray();
         }
     }
 
@@ -126,7 +174,6 @@ namespace ORB4.Updater
                 }
                 catch (System.OperationCanceledException)
                 {
-                    System.Windows.Forms.MessageBox.Show("Cannot download program data. Please, check your internet connection.", "Error", System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Error);
                     await OperationsRollback();
                     Environment.Exit(0);
                 }
@@ -169,6 +216,7 @@ namespace ORB4.Updater
                 Environment.Exit(e.HResult);
             }
         }
+        Dictionary<string, byte> _installedComponents = new Dictionary<string, byte>();
 
         public async Task ConfigureInstallation()
         {
@@ -227,6 +275,7 @@ namespace ORB4.Updater
                         System.IO.File.Delete(shortcutAddress);
                     });
                 }
+
                 CancellationTokenSource.Token.ThrowIfCancellationRequested();
                 result = System.Windows.Forms.MessageBox.Show("Create a Quick Menu shortcut?", "Question", System.Windows.Forms.MessageBoxButtons.YesNo, System.Windows.Forms.MessageBoxIcon.Question);
                 if (result == System.Windows.Forms.DialogResult.Yes)
@@ -247,6 +296,20 @@ namespace ORB4.Updater
                     });
                 }
 
+                using (FileStream fs = new FileStream(Path + "unins.dat", FileMode.CreateNew, FileAccess.Write)) {
+
+                    foreach (var component in _installedComponents)
+                    {
+                        byte[] filename = Encoding.UTF8.GetBytes(component.Key);
+                        byte[] length = BitConverter.GetBytes((ushort)filename.Length);
+
+                        await fs.WriteAsync(new byte[] { component.Value }, 0, 1);
+                        await fs.WriteAsync(length, 0, length.Length);
+                        await fs.WriteAsync(filename, 0, filename.Length);
+                    }
+                }
+
+                CancellationTokenSource.Cancel();
             }
             catch (System.OperationCanceledException)
             {
@@ -267,7 +330,6 @@ namespace ORB4.Updater
             try
             {
                 CancellationTokenSource.Token.ThrowIfCancellationRequested();
-                string tempPath = System.IO.Path.GetTempFileName();
 
                 if (Path[Path.Length - 1] != '\\')
                 {
@@ -316,13 +378,12 @@ namespace ORB4.Updater
                         if (!System.IO.Directory.Exists(Path + dir))
                         {
                             System.IO.Directory.CreateDirectory(Path + dir);
+                            _installedComponents.Add(Path + dir.Replace("/","\\"), 255);
 
                             dir = System.IO.Path.Combine(Path + dir);
-
-
+                            
                             AddRollbackOperation(() =>
                             {
-
                                 if (System.IO.Directory.Exists(dir))
                                     System.IO.Directory.Delete(dir, true);
                             });
@@ -349,10 +410,16 @@ namespace ORB4.Updater
                         await stream.CopyToAsync(fileStream);
                         stream.Close();
                         fileStream.Close();
+
+                        _installedComponents.Add((dir + filename).Replace("/", "\\"), 0);
                     }
 
                     Percentage = _previousPercentage + (int)((double)(i + 1) / (double)archive.Entries.Count * 2500);
                 }
+
+                System.IO.File.WriteAllText($"{Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}\\ORB\\Version", _version, System.Text.Encoding.ASCII);
+                
+                AddRollbackOperation(() => System.IO.File.Delete($"{Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}\\ORB\\Version"));
 
                 CancellationTokenSource.Token.ThrowIfCancellationRequested();
                 archive.Dispose();

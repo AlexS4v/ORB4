@@ -18,7 +18,7 @@ namespace ORB4
 {
     class Engine : IDisposable
     {
-        public const string Version = "4.3.1B";
+        public const string Version = "4.4B";
 
         public const int MaxRequestsPerMinute = 350;
 
@@ -173,6 +173,9 @@ namespace ORB4
 
             [JsonProperty("genre_id")]
             public Genres Genre { get; set; }
+
+            [JsonProperty("bpm")]
+            public float BPM { get; set; }
 
             [JsonProperty("title")]
             public string Title { get; set; }
@@ -386,6 +389,9 @@ namespace ORB4
             public HashSet<Modes> Modes { get; set; } = new HashSet<Modes> { Engine.Modes.Standard };
             public HashSet<Genres> Genres { get; set; } = new HashSet<Genres>() { Engine.Genres.Anime, Engine.Genres.Electronic, Engine.Genres.Pop, Engine.Genres.HipHop, Engine.Genres.Novelty, Engine.Genres.Other, Engine.Genres.Rock, Engine.Genres.Unspecified, Engine.Genres.VideoGame };
             public bool OldBeatmaps { get; set; } = false;
+
+            public float MinBPM { get; set; } = 0;
+            public float MaxBPM { get; set; } = 250;
             public int MinLength { get; set; } = 0;
             public int MaxLength { get; set; } = 600;
             public float MaxStars { get; set; } = 100;
@@ -393,6 +399,7 @@ namespace ORB4
 
             public bool AnyDifficulty { get; set; } = true;
             public bool AnyLength { get; set; } = true;
+            public bool AnyBPM { get; set; } = true;
 
             public static SearchSettings Load()
             {
@@ -447,11 +454,14 @@ namespace ORB4
                     {
                         Beatmap beatmap = _downloadedBeatmaps.Dequeue();
 
-                        bool diff = beatmap.DifficultyRating < Settings.MaxStars
-                            && beatmap.DifficultyRating > Settings.MinStars;
+                        bool diff = beatmap.DifficultyRating <= Settings.MaxStars
+                            && beatmap.DifficultyRating >= Settings.MinStars;
 
-                        bool length = beatmap.TotalLength < Settings.MaxLength
-                                && beatmap.TotalLength > Settings.MinLength;
+                        bool bpm = beatmap.BPM <= Settings.MaxBPM &&
+                            beatmap.BPM >= Settings.MinBPM;
+
+                        bool length = beatmap.TotalLength <= Settings.MaxLength
+                                && beatmap.TotalLength >= Settings.MinLength;
 
                         DateTime update_date = DateTime.ParseExact(beatmap.LastUpdate, "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
 
@@ -466,7 +476,10 @@ namespace ORB4
                         if (Settings.AnyLength)
                             length = true;
 
-                        if (diff && length && mode && genre && ranking && old)
+                        if (Settings.AnyBPM)
+                            bpm = true;
+
+                        if (diff && length && mode && genre && ranking && old && bpm)
                         {
                             if (Settings.AutoOpen)
                             {
@@ -485,9 +498,9 @@ namespace ORB4
                                         }
                                     }
 
-#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+#pragma warning disable CS4014
                                     ThumbnailsDownloader.MainThumbnailsDownloader.DownloadThumbnailAsync(beatmap.BeatmapsetId);
-#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+#pragma warning restore CS4014 
 
                                     if ((int)beatmap.RankStatus < 0)
                                     {

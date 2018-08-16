@@ -21,7 +21,7 @@ namespace ORB4.Updater
 
         private void MainWindow_Load(object sender, EventArgs e)
         {
-            if (MessageBox.Show("Please, read the following license which this software is distributed with and press YES if you want to proceed or NO if don't want to. \n\n --------------- \n\n" + Properties.Resources.License, "License", MessageBoxButtons.YesNo) == DialogResult.No)
+            if (MessageBox.Show("This software is under the MIT License. Please, read it below and press YES if you want to proceed or NO if you don't want to. \n\n--------------- \n\n" + Properties.Resources.License, "License", MessageBoxButtons.YesNo) == DialogResult.No)
             { 
                 Environment.Exit(0);
             }
@@ -31,20 +31,41 @@ namespace ORB4.Updater
             this.Icon = Properties.Resources.Main;
 
             InstallationProcess.OnInstallationFinish += InstallationFinish;
+
+            if (InstallationProcess is ORB4.Updater.Update)
+            {
+                Timer.Start();
+                Task.Factory.StartNew(InstallationProcess.Start);
+                button1.Enabled = false;
+            }
+
         }
 
         private void InstallationFinish(object sender, EventArgs e)
         {
             this.Invoke(new Action(() => { 
                 Timer.Stop();
-                button1.Text = "Installed";
 
-                MessageBox.Show("ORB was successfully installed. We hope you'll enjoy our program!", 
-                    "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                if (InstallationProcess is Install)
+                {
+                    button1.Text = "Installed";
+                    MessageBox.Show("ORB was successfully installed. We hope you'll enjoy our program!",
+                        "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+                else if (InstallationProcess is Update)
+                {
+                    button1.Text = "Updated";
+                    MessageBox.Show("ORB was successfully updated. We hope you'll enjoy our program!",
+                        "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                }
 
                 Environment.Exit(0);
             }));
         }
+
+        public bool CreateShortcut { get; set; } = false;
+        public bool CreateQuickMenuShortcut { get; set; } = false;
 
         private void InstallationError(object sender, EventArgs e)
         {

@@ -12,11 +12,27 @@ namespace ORB4.Updater
         /// The main entry point for the application.
         /// </summary>
         [STAThread]
-        static void Main()
+        static void Main(string[] args)
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new MainWindow(new Install()));
+
+            if (args.Length > 0)
+            {
+                if (args[0] == "--update")
+                    Application.Run(new MainWindow(new Update()));
+                if (args[0] == "--uninstall")
+                    return;
+                if (args[0] == "--install")
+                {
+                    Application.Run(new MainWindow(new Install()));
+                }
+                //TODO
+            }
+            else
+            {
+                Application.Run(new MainWindow(new Install()));
+            }
         }
     }
 }

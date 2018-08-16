@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" type="text/css" href="../css/main.css">
-    <script src="/jquery"></script>
     <script>
         function sendJson(obj) {
             var str = JSON.stringify(obj);
@@ -52,17 +51,18 @@
 
             updateAnyDifficultySwitch();
             updateAnyLengthSwitch();
+            updateAnyBPMSwitch();
         }
-
-        $(document).on('contextmenu', function (e) {
-            if (!$(e.target).is("#api_key"))
-                return false;
+        
+        document.addEventListener('contextmenu', function(e) {
+            if (e.target.id != "api_key")
+                e.preventDefault();
         });
         
         function playSound(name){
             setTimeout(function(){
                 var request = new XMLHttpRequest();
-                    request.open("GET", `/sounds/play?id=${name}`, false);
+                    request.open("GET", `/sounds/play?id=${name}`, true);
                     request.send();
             }, 1);
         }
@@ -206,6 +206,28 @@
                 document.getElementById("min_length").disabled = false;
             }
         }
+
+        function updateAnyBPMSwitch(element) {
+            if (document.getElementById("any_bpm").checked) {
+                document.getElementById("max_bpm").disabled = true;
+                document.getElementById("min_bpm").disabled = true;
+            } else {
+                document.getElementById("max_bpm").disabled = false;
+                document.getElementById("min_bpm").disabled = false;
+            }
+        }
+
+        function anyBPMSwitch(element) {
+            onChange(element);
+
+            if (element.checked) {
+                document.getElementById("max_bpm").disabled = true;
+                document.getElementById("min_bpm").disabled = true;
+            } else {
+                document.getElementById("max_bpm").disabled = false;
+                document.getElementById("min_bpm").disabled = false;
+            }
+        }
     </script>
 
     <div class="setting" style="margin-top:10px">
@@ -216,6 +238,25 @@
     <div class="setting" style="margin-top:10px;">
         Min length
         <input id="min_length" onchange="onChange(this)" type="number" style="margin-left: 13.5px;" value="0" />
+    </div>
+
+    <hr>
+
+    <div class="setting" style="margin-top:10px">
+        <div class="onoffswitch">
+            <input onchange="anyBPMSwitch(this)" type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="any_bpm">
+            <label class="onoffswitch-label" for="any_bpm"></label>
+        </div> &nbsp;&nbsp;&nbsp; Any BPM
+    </div>
+
+    <div class="setting" style="margin-top:10px">
+        Max BPM
+        <input id="max_bpm" onchange="onChange(this)" type="number" style="margin-left: 10px;" value="250" />
+    </div>
+
+    <div class="setting" style="margin-top:10px;">
+        Min BPM
+        <input id="min_bpm" onchange="onChange(this)" type="number" style="margin-left: 13.5px;" value="0" />
     </div>
 
     <div class="settings-group" style="margin-top: 30px; font-family: NotoRegular; font-size: 18px">Ranking status</div>
@@ -364,6 +405,7 @@
         </div> &nbsp;&nbsp;&nbsp; Other
     </div>
 
+    <div style="margin-top:20px;padding-left: 25px; text-align: left;">Developed by Zusupe Team <br><br> This program is not affiliated with the game osu! - All credits to Dean Herbert.</div>
     <div style="width: 100%; height: 50px;"></div>
 </body>
 

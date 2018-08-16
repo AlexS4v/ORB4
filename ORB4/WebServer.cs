@@ -18,6 +18,8 @@ namespace ORB4
         HttpListener _listener;
         Dictionary<string, HtmlResource> _resources;
 
+        private System.Threading.SemaphoreSlim _thumbnailsSemaphore;
+
         public Engine Engine;
 
         class HtmlResource
@@ -38,6 +40,7 @@ namespace ORB4
 
         public WebServer()
         {
+            _thumbnailsSemaphore = new System.Threading.SemaphoreSlim(1, 1);
             _listener = new HttpListener();
             Engine = new Engine() { ApiKey = "", Settings = ORB4.Engine.SearchSettings.Load() };
 
@@ -263,16 +266,24 @@ namespace ORB4
                             }
                             else if (context.Request.RawUrl.Contains("/images/get_beatmap_image"))
                             {
-                                string query = context.Request.QueryString["id"];
+                                await _thumbnailsSemaphore.WaitAsync();
+                                try
+                                {
+                                    string query = context.Request.QueryString["id"];
 
-                                context.Response.StatusCode = 200;
-                                bytes = await ThumbnailsDownloader.MainThumbnailsDownloader.GetThumbnail(int.Parse(query));
-                                context.Response.ContentLength64 = bytes.Length;
-                                context.Response.ContentType = "image/jpeg";
+                                    context.Response.StatusCode = 200;
+                                    bytes = await ThumbnailsDownloader.MainThumbnailsDownloader.GetThumbnail(int.Parse(query));
+                                    context.Response.ContentLength64 = bytes.Length;
+                                    context.Response.ContentType = "image/jpeg";
 
-                                await context.Response.OutputStream.WriteAsync(bytes, 0, bytes.Length);
-                                context.Response.OutputStream.Close();
-                                return;
+                                    await context.Response.OutputStream.WriteAsync(bytes, 0, bytes.Length);
+                                    context.Response.OutputStream.Close();
+                                    return;
+                                }
+                                finally
+                                {
+                                    _thumbnailsSemaphore.Release();
+                                }
                             }else if (context.Request.RawUrl.Contains("/sounds/play"))
                             {
                                 context.Response.StatusCode = 200;
@@ -321,6 +332,9 @@ namespace ORB4
                 new JObject() { { "id", "min_stars"}, { "value", Engine.Settings.MinStars.ToString(System.Globalization.CultureInfo.GetCultureInfo("en-US")) } },
                 new JObject() { { "id", "max_length"}, { "value", Engine.Settings.MaxLength.ToString(System.Globalization.CultureInfo.GetCultureInfo("en-US")) } },
                 new JObject() { { "id", "min_length"}, { "value", Engine.Settings.MinLength.ToString(System.Globalization.CultureInfo.GetCultureInfo("en-US")) } },
+                new JObject() { { "id", "max_bpm"}, { "value", Engine.Settings.MaxBPM.ToString(System.Globalization.CultureInfo.GetCultureInfo("en-US")) } },
+                new JObject() { { "id", "min_bpm"}, { "value", Engine.Settings.MinBPM.ToString(System.Globalization.CultureInfo.GetCultureInfo("en-US")) } },
+                new JObject() { { "id", "any_bpm"}, { "checked", Engine.Settings.AnyBPM.ToString().ToLower() } },
                 new JObject() { { "id", "any_difficulty"}, { "checked", Engine.Settings.AnyDifficulty.ToString().ToLower() } },
                 new JObject() { { "id", "any_length"}, { "checked", Engine.Settings.AnyLength.ToString().ToLower() } },
                 new JObject() { { "id", "sound_effects"}, { "checked", Engine.Settings.SoundEffects.ToString().ToLower() } }
@@ -398,6 +412,9 @@ namespace ORB4
                 case "sound_effects":
                     Engine.Settings.SoundEffects = bool.Parse(check);
                     break;
+                case "any_bpm":
+                    Engine.Settings.AnyBPM = bool.Parse(check);
+                    break;
                 case "any_difficulty":
                     Engine.Settings.AnyDifficulty = bool.Parse(check);
                     break;
@@ -453,6 +470,26 @@ namespace ORB4
                         Engine.Settings.MinLength = 0;
                     }
                     break;
+                case "max_bpm":
+                    try
+                    {
+                        Engine.Settings.MaxBPM = float.Parse(value, System.Globalization.CultureInfo.GetCultureInfo("en-US"));
+                    }
+                    catch
+                    {
+                        Engine.Settings.MaxBPM = 250;
+                    }
+                    break;
+                case "min_bpm":
+                    try
+                    {
+                        Engine.Settings.MinBPM = float.Parse(value, System.Globalization.CultureInfo.GetCultureInfo("en-US"));
+                    }
+                    catch
+                    {
+                        Engine.Settings.MinBPM = 0;
+                    }
+                    break;
                 default:
                     break;
             }
@@ -501,7 +538,7 @@ namespace ORB4
             while (_running)
             {
                 HttpListenerContext context = await _listener.GetContextAsync();
-                await ProcessRequest(context);
+                ProcessRequest(context);
             }
 
             _listener.Stop();

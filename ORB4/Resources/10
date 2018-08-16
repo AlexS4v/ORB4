@@ -5,7 +5,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" type="text/css" href="../css/main.css">
-    <script src="/jquery"></script>
 </head>
 
 <body style="overflow-y: auto;" onload="onStart()" oncontextmenu="return false">
@@ -14,7 +13,7 @@
         function playSound(name) {
             setTimeout(function () {
                 var request = new XMLHttpRequest();
-                request.open("GET", `/sounds/play?id=${name}`, false);
+                request.open("GET", `/sounds/play?id=${name}`, true);
                 request.send();
             }, 1);
         }
@@ -37,8 +36,8 @@
 
             x.style.color = "rgb(28, 145, 223)";
             previous = x;
-
-            $("#beatmaps").html("");
+            
+            document.getElementById("beatmaps").innerHTML = "";
 
             if (x.id == "ranked")
                 updateList('ranked');
@@ -94,7 +93,7 @@
 
             if (array.length == 0) {
                 var beatmaps = document.getElementById("beatmaps");
-                beatmaps.innerHTML = '<span style="color: gray">No beatmaps were found for the selected ranking status.</span>';
+                beatmaps.innerHTML = '<span style="color: gray">No beatmaps found for the selected ranking status.</span>';
                 working = false;
                 return;
             }
@@ -161,7 +160,7 @@
             unranked = undefined;
             loved = undefined;
 
-            $('#beatmaps').html(`<span style="color: gray">Beatmaps history was deleted successfully.</span>`);
+            document.getElementById("beatmaps").innerHTML = `<span style="color: gray">Beatmaps history has been cleaned successfully.</span>`;
         }
 
         function openBeatmapset(x) {

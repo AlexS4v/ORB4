@@ -88,7 +88,7 @@ namespace ORB4
 
             if (!Cef.IsInitialized)
             {
-                throw new Exception("CEF couldn't initialize.");
+                throw new Exception("Couldn't initialize CEF.");
             }
 
             Logger.MainLogger.Log(Logger.LogTypes.Info, "CEF.Initialize -> Success");
@@ -124,6 +124,7 @@ namespace ORB4
             
             _browser.IsBrowserInitializedChanged += InitializeStatus;
             this.Controls.Add(_browser);
+            
         }
 
         bool _initialized = false;
@@ -132,7 +133,6 @@ namespace ORB4
         {
             if (e.IsBrowserInitialized)
             {
-                //_browser.ShowDevTools();
                 Logger.MainLogger.Log(Logger.LogTypes.Info, "CookieManager.Initialize -> Success");
 
                 predW = this.Width;

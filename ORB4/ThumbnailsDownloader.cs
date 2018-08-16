@@ -28,7 +28,6 @@ namespace ORB4
 
         public async Task<byte[]> GetThumbnail(int id)
         {
-            _getSemaphore.WaitOne();
             Download download = null;
 
             await Task.Delay(100);
@@ -44,7 +43,6 @@ namespace ORB4
 
             if (download == null)
             {
-                _getSemaphore.Release();
                 return Properties.Resources._13;
             }
             else
@@ -63,11 +61,9 @@ namespace ORB4
                 }
                 else if (download.Status == -1)
                 {
-                    _getSemaphore.Release();
                     return Properties.Resources._13;
                 }
-
-                _getSemaphore.Release();
+                
                 return ReadFromStream(download.Pos, download.Length);
             }
         }
@@ -174,7 +170,7 @@ namespace ORB4
             _downloads = new List<Download>();
             _downloadsSemaphore = new Semaphore(1, 1);
             _writeSemaphore = new Semaphore(1, 1);
-            _getSemaphore = new Semaphore(4, 4);
+            _getSemaphore = new Semaphore(1, 1);
         }
     }
 }
