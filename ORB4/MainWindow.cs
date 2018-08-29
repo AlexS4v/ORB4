@@ -133,6 +133,7 @@ namespace ORB4
         {
             if (e.IsBrowserInitialized)
             {
+            //    _browser.ShowDevTools();
                 Logger.MainLogger.Log(Logger.LogTypes.Info, "CookieManager.Initialize -> Success");
 
                 predW = this.Width;

@@ -241,6 +241,45 @@ namespace ORB4
                                 context.Response.OutputStream.Close();
                                 return;
                             }
+                            else if (context.Request.RawUrl.Contains("/engine/beatmaps/ranked"))
+                            {
+                                string query = context.Request.QueryString["p"];
+
+                                context.Response.StatusCode = 200;
+                                context.Response.ContentType = "application/json";
+
+                                bytes = Encoding.UTF8.GetBytes(Engine.GetRankedPageJson(int.Parse(query)));
+
+                                await context.Response.OutputStream.WriteAsync(bytes, 0, bytes.Length);
+
+                                context.Response.OutputStream.Close();
+                            }
+                            else if (context.Request.RawUrl.Contains("/engine/beatmaps/unranked"))
+                            {
+                                string query = context.Request.QueryString["p"];
+
+                                context.Response.StatusCode = 200;
+                                context.Response.ContentType = "application/json";
+
+                                bytes = Encoding.UTF8.GetBytes(Engine.GetUnrankedPageJson(int.Parse(query)));
+
+                                await context.Response.OutputStream.WriteAsync(bytes, 0, bytes.Length);
+
+                                context.Response.OutputStream.Close();
+                            }
+                            else if (context.Request.RawUrl.Contains("/engine/beatmaps/loved"))
+                            {
+                                string query = context.Request.QueryString["p"];
+
+                                context.Response.StatusCode = 200;
+                                context.Response.ContentType = "application/json";
+
+                                bytes = Encoding.UTF8.GetBytes(Engine.GetLovedPageJson(int.Parse(query)));
+
+                                await context.Response.OutputStream.WriteAsync(bytes, 0, bytes.Length);
+
+                                context.Response.OutputStream.Close();
+                            }
                             else if (context.Request.RawUrl.Contains("/utils/open_beatmapset"))
                             {
                                 string query = context.Request.QueryString["id"];
