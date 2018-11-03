@@ -78,10 +78,18 @@ namespace ORB4.Updater
                 {
                     Percentage += increment;
 
-                    CurrentDescription = "Operations rollback...";
+                    try
+                    {
+                        CurrentDescription = "Operations rollback...";
 
-                    Console.WriteLine("RLB#" + i);
-                    RollbackOperations[i].Invoke();
+                        Console.WriteLine("RLB#" + i);
+                        RollbackOperations[i].Invoke();
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e.ToString());
+                        continue;
+                    }
 
                     await Task.Delay(1);
                 }

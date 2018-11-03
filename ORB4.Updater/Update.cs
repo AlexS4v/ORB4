@@ -19,6 +19,7 @@ namespace ORB4.Updater
         private string _tempFile;
 
         List<string> _filesToUpdate = new List<string>();
+        Dictionary<string, byte> _installedComponents = new Dictionary<string, byte>();
 
         public async Task DownloadData()
         {
@@ -227,7 +228,41 @@ namespace ORB4.Updater
             {
                 System.Windows.Forms.MessageBox.Show("Oops, that's so embarrassing... An error occurred: " + e.ToString() + "\n\nThe program may be not properly installed. You should try to install it again.", "Error", System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Error);
                 CurrentDescription = "Operations rollback...";
+                await OperationsRollback();
                 Environment.Exit(e.HResult);
+            }
+        }
+
+        public async Task FinalizeUpdate()
+        {
+            
+            using (FileStream fs = new FileStream(Path + "unins.dat", FileMode.CreateNew, FileAccess.Write))
+            {
+                string temp = System.IO.Path.GetTempFileName();
+                System.IO.File.Copy(Path + "unins.dat", temp);
+               
+                AddRollbackOperation(() =>
+                {
+                    System.IO.File.Delete(Path + "unins.dat");
+                    System.IO.File.Copy(temp, Path + "unins.dat");
+                    System.IO.File.Delete(temp);
+                });
+
+                foreach (var component in _installedComponents)
+                {
+                    byte[] filename = Encoding.UTF8.GetBytes(component.Key);
+                    byte[] length = BitConverter.GetBytes((ushort)filename.Length);
+
+                    await fs.WriteAsync(new byte[] { component.Value }, 0, 1);
+                    await fs.WriteAsync(length, 0, length.Length);
+                    await fs.WriteAsync(filename, 0, filename.Length);
+
+                    if (component.Value != 255)
+                    {
+                        byte[] hash = Utils.CalculateSHA512BytesFromPath(Path + "\\" + component.Key);
+                        await fs.WriteAsync(hash, 0, hash.Length);
+                    }
+                }
             }
         }
 
@@ -254,6 +289,13 @@ namespace ORB4.Updater
                     Name = "EX#1",
                     Description = "Extracting files...",
                     Main = new Func<Task>(ExtractFiles)
+                },
+
+                new Operation()
+                {
+                    Name = "UP#1",
+                    Description = "Finalizing update...",
+                    Main = new Func<Task>(FinalizeUpdate)
                 }
             };
         }
@@ -313,6 +355,7 @@ namespace ORB4.Updater
                         if (!System.IO.Directory.Exists(Path + dir))
                         {
                             System.IO.Directory.CreateDirectory(Path + dir);
+                            _installedComponents.Add(Path + dir.Replace("/", "\\"), 255);
 
                             dir = System.IO.Path.Combine(Path + dir);
 
@@ -361,6 +404,8 @@ namespace ORB4.Updater
                             await stream.CopyToAsync(fileStream);
                             stream.Close();
                             fileStream.Close();
+
+                            _installedComponents.Add((dir + filename).Replace("/", "\\"), 0);
                         }
                     }
 
@@ -399,7 +444,10 @@ namespace ORB4.Updater
 
                 foreach (var backup in _backupFiles)
                 {
-                    System.IO.File.Delete(backup.Value);
+                    try
+                    {
+                        System.IO.File.Delete(backup.Value);
+                    } catch { continue; }
                 }
 
             } catch { return; }

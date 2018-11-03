@@ -38,6 +38,17 @@ namespace ORB4.Updater
                 Task.Factory.StartNew(InstallationProcess.Start);
                 button1.Enabled = false;
             }
+            else if (InstallationProcess is ORB4.Updater.Uninstall)
+            {
+                if (MessageBox.Show("Are you sure you want to uninstall Osu! Random Beatmap? :(", "Question", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                {
+                    Timer.Start();
+                    Task.Factory.StartNew(InstallationProcess.Start);
+                    button1.Enabled = false;
+                }
+                else
+                    Environment.Exit(0);
+            }
 
         }
 
@@ -58,6 +69,11 @@ namespace ORB4.Updater
                     MessageBox.Show("ORB was successfully updated. We hope you'll enjoy our program!",
                         "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
+                } else if (InstallationProcess is Uninstall)
+                {
+                    button1.Text = "Uninstalled";
+                    MessageBox.Show("ORB was successfully uninstalled.",
+                        "Info", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
 
                 Environment.Exit(0);

@@ -231,15 +231,20 @@
     </script>
 
     <div class="setting" style="margin-top:10px">
-        Max length
+        Max length 
         <input id="max_length" onchange="onChange(this)" type="number" style="margin-left: 10px;" value="600" />
+		<span style="color: gray; font-size: 15px;">*</span>
     </div>
 
     <div class="setting" style="margin-top:10px;">
         Min length
         <input id="min_length" onchange="onChange(this)" type="number" style="margin-left: 13.5px;" value="0" />
+		<span style="color: gray; font-size: 15px;">*</span>
     </div>
 
+	<div class="setting" style="margin-top:10px">
+	<span style="color: gray; font-size: 12px; text-align: left">* seconds</span>
+	</div>
     <hr>
 
     <div class="setting" style="margin-top:10px">

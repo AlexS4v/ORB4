@@ -31,15 +31,22 @@ namespace ORB4
     class CSharpTools
     {
         private Engine _engine { get; set; }
+        private MainWindow _mainWindow { get; set; }
 
-        public CSharpTools(ref Engine engine)
+        public CSharpTools(ref Engine engine, ref MainWindow mainWindow)
         {
+            _mainWindow = mainWindow;
             _engine = engine;
         }
 
         public void OpenUrl(string url)
         {
             System.Diagnostics.Process.Start(url);
+        }
+
+        public void FixZoom()
+        {
+            _mainWindow.FixZoom();
         }
 
         public void RegisterApiKey(string apikey)
@@ -62,9 +69,13 @@ namespace ORB4
         ChromiumWebBrowser _browser;
         WebServer _server;
 
+        public static MainWindow Current; 
+
         public MainWindow()
         {
             InitializeComponent();
+
+            Current = this;
 
             this.Resize += OnWinResize;
 
@@ -110,7 +121,7 @@ namespace ORB4
 
             _browser = new ChromiumWebBrowser($"{_server.Url}html/mainwindow.html") { Dock = DockStyle.Fill };
             Logger.MainLogger.Log(Logger.LogTypes.Info, "BrowserObject.Create -> Success");
-            _browser.RegisterJsObject("cSharpTools", new CSharpTools(ref _server.Engine));
+            _browser.RegisterJsObject("cSharpTools", new CSharpTools(ref _server.Engine, ref Current));
             Logger.MainLogger.Log(Logger.LogTypes.Info, "BrowserObject.RegisterJS -> Success");
 
             manager.SetCookie(_server.Url, new CefSharp.Cookie()
@@ -138,12 +149,6 @@ namespace ORB4
 
                 predW = this.Width;
                 predY = this.Height;
-                
-                double areaPred = predW * predY;
-                double areaCurrent = this.Width * this.Height;
-
-                double scale = Math.Round(areaCurrent / 1.5 / areaPred, 1);
-                _browser.SetZoomLevel(scale-1);
 
                 _initialized = true;
             }
@@ -152,14 +157,19 @@ namespace ORB4
         int predW = 800;
         int predY = 600;
 
+        public void FixZoom()
+        {
+            double areaPred = predW * predY;
+            double areaCurrent = this.Width * this.Height;
+
+            double scale = Math.Round(areaCurrent / 1.5 / areaPred, 1);
+            _browser.SetZoomLevel(scale - 1);
+        }
+
         private void OnWinResize(object sender, EventArgs e)
         {
             if (_initialized) {
-                double areaPred = predW * predY;
-                double areaCurrent = this.Width * this.Height;
-
-                double scale = Math.Round(areaCurrent / 1.5 / areaPred, 1);
-                _browser.SetZoomLevel(scale - 1);
+                FixZoom();
             }
         }
 

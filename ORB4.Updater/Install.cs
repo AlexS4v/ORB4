@@ -49,8 +49,29 @@ namespace ORB4.Updater
         {
             using (var algorithm = SHA512.Create())
             {
-                byte[] hash = algorithm.ComputeHash(new System.IO.FileStream(path, System.IO.FileMode.Open, System.IO.FileAccess.Read));
-                return BitConverter.ToString(hash).Replace("-", string.Empty).ToLower();
+                byte[] hash = null;
+
+                using (var fs = new System.IO.FileStream(path, System.IO.FileMode.Open, System.IO.FileAccess.Read))
+                {
+                    hash = algorithm.ComputeHash(fs);
+                }
+
+                StringBuilder sb = new StringBuilder();
+                foreach (byte b in hash)
+                    sb.Append(b.ToString("X2"));
+
+                return sb.ToString().ToLower();
+            }
+        }
+
+        public static byte[] CalculateSHA512BytesFromPath(string path)
+        {
+            using (var algorithm = SHA512.Create())
+            {
+                using (var fs = new System.IO.FileStream(path, System.IO.FileMode.Open, System.IO.FileAccess.Read))
+                {
+                    return algorithm.ComputeHash(fs);
+                }
             }
         }
 
@@ -222,7 +243,7 @@ namespace ORB4.Updater
         {
             try
             {
-                RegistryKey SoftwareKey = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64);
+                RegistryKey SoftwareKey = RegistryKey.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Registry32);
                 CancellationTokenSource.Token.ThrowIfCancellationRequested();
                 RegistryKey parent = SoftwareKey.OpenSubKey(
                     @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall", true);
@@ -252,7 +273,7 @@ namespace ORB4.Updater
                     if (parent == null)
                         parent = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall", true);
 
-                    parent.DeleteSubKey("ORB");
+                    parent.DeleteSubKey("Osu! Random Beatmap");
                     parent.Close();
 
                     parent = null;
@@ -306,10 +327,15 @@ namespace ORB4.Updater
                         await fs.WriteAsync(new byte[] { component.Value }, 0, 1);
                         await fs.WriteAsync(length, 0, length.Length);
                         await fs.WriteAsync(filename, 0, filename.Length);
+
+                        if (component.Value != 255)
+                        {
+                            byte[] hash = Utils.CalculateSHA512BytesFromPath(component.Key);
+                            await fs.WriteAsync(hash, 0, hash.Length);
+                        } 
                     }
                 }
-
-                CancellationTokenSource.Cancel();
+                
             }
             catch (System.OperationCanceledException)
             {
@@ -342,6 +368,7 @@ namespace ORB4.Updater
                 {
                     archive.Dispose();
                 });
+
 
                 for (int i = 0; i < archive.Entries.Count; i++)
                 {

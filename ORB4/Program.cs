@@ -13,7 +13,7 @@ namespace ORB4
         /// </summary>
         [STAThread]
         static void Main()
-        {
+       {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
@@ -27,7 +27,7 @@ namespace ORB4
 
             Logger.MainLogger.Log(Logger.LogTypes.Info, "The program is running!");
 
-            ThumbnailsDownloader.MainThumbnailsDownloader = new ThumbnailsDownloader();
+            ThumbnailDownloader.MainThumbnailDownloader = new ThumbnailDownloader();
 
             try
             {
@@ -40,7 +40,7 @@ namespace ORB4
             finally
             {
                 Logger.MainLogger.Stop().GetAwaiter().GetResult();
-                ThumbnailsDownloader.MainThumbnailsDownloader.Dispose();
+                ThumbnailDownloader.MainThumbnailDownloader.Dispose();
             }
 
             Environment.Exit(0);

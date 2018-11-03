@@ -18,7 +18,7 @@ namespace ORB4
 {
     class Engine : IDisposable
     {
-        public const string Version = "4.4.5B";
+        public const string Version = "4.5B";
 
         public const int MaxRequestsPerMinute = 350;
 
@@ -501,8 +501,6 @@ namespace ORB4
                 foreach (var genre in Genres)
                     this.Genres.Add((Engine.Genres)genre);
 
-                this.Ripple = Ripple;
-
                 this.Save();
             }
 
@@ -511,8 +509,6 @@ namespace ORB4
             public HashSet<Modes> Modes { get; set; } = new HashSet<Modes> { Engine.Modes.Standard };
             public HashSet<Genres> Genres { get; set; } = new HashSet<Genres>() { Engine.Genres.Anime, Engine.Genres.Electronic, Engine.Genres.Pop, Engine.Genres.HipHop, Engine.Genres.Novelty, Engine.Genres.Other, Engine.Genres.Rock, Engine.Genres.Unspecified, Engine.Genres.VideoGame };
             public bool OldBeatmaps { get; set; } = false;
-
-            public bool Ripple { get; set; } = false;
 
             public float MinBPM { get; set; } = 0;
             public float MaxBPM { get; set; } = 250;
@@ -593,9 +589,6 @@ namespace ORB4
 
                         bool genre = Settings.Genres.Any(x => x == beatmap.Genre) || Settings.Genres.Count == 0;
 
-                        if (Settings.Ripple)
-                            genre = true;
-
                         bool ranking = Settings.RankStatus.Any(x => x == beatmap.RankStatus);
                         bool old = Settings.OldBeatmaps ? update_date.Year < 2011 : true;
 
@@ -628,7 +621,7 @@ namespace ORB4
                                     }
 
 #pragma warning disable CS4014
-                                    ThumbnailsDownloader.MainThumbnailsDownloader.DownloadThumbnailAsync(beatmap.BeatmapsetId);
+                                    ThumbnailDownloader.MainThumbnailDownloader.DownloadThumbnailAsync(beatmap.BeatmapsetId);
 #pragma warning restore CS4014 
 
                                     if ((int)beatmap.RankStatus <= 0)
@@ -656,7 +649,7 @@ namespace ORB4
                                 _foundCount++;
 
 #pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-                                ThumbnailsDownloader.MainThumbnailsDownloader.DownloadThumbnailAsync(beatmap.BeatmapsetId);
+                                ThumbnailDownloader.MainThumbnailDownloader.DownloadThumbnailAsync(beatmap.BeatmapsetId);
 #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 
                                 if ((int)beatmap.RankStatus <= 0)
@@ -788,10 +781,7 @@ namespace ORB4
                         {
                             link = _uncheckedLinks.Dequeue();
 
-                            if (!Settings.Ripple)
-                                id = int.Parse(link.Replace($"https://osu.ppy.sh/api/get_beatmaps?k={ApiKey}&s=", string.Empty));
-                            else
-                                id = int.Parse(link.Replace($"https://ripple.moe/api/get_beatmaps?s=", string.Empty));
+                            id = int.Parse(link.Replace($"https://osu.ppy.sh/api/get_beatmaps?k={ApiKey}&s=", string.Empty));
 
                             method = false;
                         }
@@ -816,10 +806,7 @@ namespace ORB4
                                     goto ChooseId;
                             }
 
-                            if (!Settings.Ripple)
-                                link = $"https://osu.ppy.sh/api/get_beatmaps?k={ApiKey}&{mChar}={id}";
-                            else
-                                link = $"https://ripple.moe/api/get_beatmaps?{mChar}={id}";
+                            link = $"https://osu.ppy.sh/api/get_beatmaps?k={ApiKey}&{mChar}={id}";
                         }
 
                         HttpResponseMessage response =
@@ -868,10 +855,7 @@ namespace ORB4
 
                                     if (method == true)
                                     {
-                                        if (!Settings.Ripple)
-                                            _uncheckedLinks.Enqueue($"https://osu.ppy.sh/api/get_beatmaps?k={ApiKey}&s={beatmaps[0].BeatmapsetId}");
-                                        else
-                                            _uncheckedLinks.Enqueue($"https://ripple.moe/api/get_beatmaps?s={beatmaps[0].BeatmapsetId}");
+                                        _uncheckedLinks.Enqueue($"https://osu.ppy.sh/api/get_beatmaps?k={ApiKey}&s={beatmaps[0].BeatmapsetId}");
                                     }
                                 }
 

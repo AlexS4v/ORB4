@@ -311,7 +311,7 @@ namespace ORB4
                                     string query = context.Request.QueryString["id"];
 
                                     context.Response.StatusCode = 200;
-                                    bytes = await ThumbnailsDownloader.MainThumbnailsDownloader.GetThumbnail(int.Parse(query));
+                                    bytes = await ThumbnailDownloader.MainThumbnailDownloader.GetThumbnail(int.Parse(query));
                                     context.Response.ContentLength64 = bytes.Length;
                                     context.Response.ContentType = "image/jpeg";
 

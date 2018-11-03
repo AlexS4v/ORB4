@@ -9,9 +9,9 @@ using System.Threading.Tasks;
 
 namespace ORB4
 {
-    class ThumbnailsDownloader : IDisposable
+    class ThumbnailDownloader : IDisposable
     {
-        public static ThumbnailsDownloader MainThumbnailsDownloader;
+        public static ThumbnailDownloader MainThumbnailDownloader;
 
         private class Download
         {
@@ -160,7 +160,7 @@ namespace ORB4
 
         private FileStream _stream;
 
-        public ThumbnailsDownloader()
+        public ThumbnailDownloader()
         {
             if (System.IO.File.Exists($"{Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}\\ORB\\ThumbnailsCache"))
                 System.IO.File.Delete($"{Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}\\ORB\\ThumbnailsCache");

@@ -22,11 +22,9 @@ namespace ORB4.Updater
                 if (args[0] == "--update")
                     Application.Run(new MainWindow(new Update()));
                 if (args[0] == "--uninstall")
-                    return;
+                    Application.Run(new MainWindow(new Uninstall()));
                 if (args[0] == "--install")
-                {
                     Application.Run(new MainWindow(new Install()));
-                }
                 //TODO
             }
             else
