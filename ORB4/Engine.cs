@@ -18,7 +18,12 @@ namespace ORB4
 {
     class Engine : IDisposable
     {
-        public const string Version = "4.5B";
+        public enum DownloadMirrors
+        {
+            Hexide, Bloodcat 
+        }
+
+        public const string Version = "4.0S";
 
         public const int MaxRequestsPerMinute = 350;
 
@@ -39,14 +44,17 @@ namespace ORB4
         private string _lastError = string.Empty;
         private bool _invalidApiKey = false;
 
+        private Semaphore _downloadedSemaphore = new Semaphore(1, 1);
         private Semaphore _testedSemaphore = new Semaphore(1, 1);
 
         public static Random RandomHelper = new Random();
         public static Beatmap LastBeatmap { get; set; } = null;
 
-        private BeatmapsCache _rankedCache = new BeatmapsCache($"{Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}\\ORB\\RankedCache");
-        private BeatmapsCache _unrankedCache = new BeatmapsCache($"{Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}\\ORB\\UnrankedCache");
-        private BeatmapsCache _lovedCache = new BeatmapsCache($"{Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}\\ORB\\LovedCache");
+        //private BeatmapsCache _rankedCache = new BeatmapsCache($"{Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}\\ORB\\RankedCache");
+        //private BeatmapsCache _unrankedCache = new BeatmapsCache($"{Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}\\ORB\\UnrankedCache");
+        //private BeatmapsCache _lovedCache = new BeatmapsCache($"{Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}\\ORB\\LovedCache");
+
+        private BeatmapsCache _rankedCache, _unrankedCache, _lovedCache;
 
         public enum RankStatus
         {
@@ -217,12 +225,15 @@ namespace ORB4
         {
             private FileStream _stream;
 
+            public Engine Engine { get; private set; }
             public string Path { get; private set; }
 
-            public BeatmapsCache(string path)
+            public BeatmapsCache(string path, Engine engine)
             {
                 if (System.IO.File.Exists(path))
                     System.IO.File.Delete(path);
+
+                Engine = engine;
 
                 _stream = new FileStream(path, FileMode.CreateNew);
                 Path = path;
@@ -271,7 +282,7 @@ namespace ORB4
 
                         array.Add(new JObject()
                         {
-                            { "id", ToInt32(ReadBytes(4), 0) }, { "title", ReadString() },
+                            { "id", ToInt32(ReadBytes(4), 0) }, { "b_id", ToInt32(ReadBytes(4), 0) }, { "title", ReadString() },
                             { "artist", ReadString() }, { "creator", ReadString() },
                         });
                     }
@@ -305,7 +316,7 @@ namespace ORB4
                         {
                             array.Add(new JObject()
                                 {
-                                    { "id", ToInt32(ReadBytes(4), 0) }, { "title", ReadString() },
+                                    { "id", ToInt32(ReadBytes(4), 0) }, { "b_id", ToInt32(ReadBytes(4), 0) }, { "title", ReadString() },
                                     { "artist", ReadString() }, { "creator", ReadString() },
                                 });
                         }
@@ -341,6 +352,7 @@ namespace ORB4
                             beatmaps[i - PageSize * pages] = new Beatmap()
                             {
                                 BeatmapsetId = ToInt32(ReadBytes(4), 0),
+                                BeatmapId = ToInt32(ReadBytes(4), 0),
                                 Title = ReadString(),
                                 Artist = ReadString(),
                                 Creator = ReadString(),
@@ -374,6 +386,7 @@ namespace ORB4
                         beatmaps[i] = new Beatmap()
                         {
                             BeatmapsetId = ToInt32(ReadBytes(4), 0),
+                            BeatmapId = ToInt32(ReadBytes(4), 0),
                             Title = ReadString(),
                             Artist = ReadString(),
                             Creator = ReadString(),
@@ -409,16 +422,18 @@ namespace ORB4
 
                     foreach (var beatmap in beatmaps)
                     {
-                        byte[] bytes = GetBytes((UInt32)beatmap.BeatmapsetId);
+                        byte[] bmSetId = GetBytes((UInt32)beatmap.BeatmapsetId);
+                        byte[] bmId = GetBytes((UInt32)beatmap.BeatmapId);
                         byte[] title = Encoding.UTF8.GetBytes(beatmap.Title);
                         byte[] artist = Encoding.UTF8.GetBytes(beatmap.Artist);
                         byte[] creator = Encoding.UTF8.GetBytes(beatmap.Creator);
 
-                        int beatmapFileSize = bytes.Length + 2 + title.Length + 2 + artist.Length + 2 + creator.Length;
+                        int beatmapFileSize = bmSetId.Length + bmId.Length + 2 + title.Length + 2 + artist.Length + 2 + creator.Length;
 
                         WriteBytes(GetBytes(beatmapFileSize));
 
-                        WriteBytes(bytes);
+                        WriteBytes(bmSetId);
+                        WriteBytes(bmId);
 
                         WriteBytes(GetBytes((ushort)title.Length)); WriteBytes(title);
                         WriteBytes(GetBytes((ushort)artist.Length)); WriteBytes(artist);
@@ -482,12 +497,18 @@ namespace ORB4
             }
         }
 
-        public class SearchSettings
+        public bool Ripple {
+            get {
+                return LocalSettings.Ripple;
+            }
+        }
+
+        public class Settings
         {
-            public SearchSettings() { }
+            public Settings() { }
 
             [JsonConstructor]
-            public SearchSettings(int[] RankStatus, int[] Modes, int[] Genres, bool Ripple)
+            public Settings(int[] RankStatus, int[] Modes, int[] Genres)
             {
                 this.RankStatus = new HashSet<Engine.RankStatus>();
                 foreach (var rank in RankStatus)
@@ -500,8 +521,6 @@ namespace ORB4
                 this.Genres = new HashSet<Engine.Genres>();
                 foreach (var genre in Genres)
                     this.Genres.Add((Engine.Genres)genre);
-
-                this.Save();
             }
 
             public HashSet<RankStatus> RankStatus { get; set; } = new HashSet<Engine.RankStatus> { Engine.RankStatus.Approved,
@@ -517,23 +536,24 @@ namespace ORB4
             public float MaxStars { get; set; } = 100;
             public float MinStars { get; set; } = 0;
 
+            public bool Ripple { get; set; } = false;
             public bool AnyDifficulty { get; set; } = true;
             public bool AnyLength { get; set; } = true;
             public bool AnyBPM { get; set; } = true;
 
-            public static SearchSettings Load()
+            public static Settings Load()
             {
                 try
                 {
                     string AppData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
                     if (System.IO.File.Exists($"{AppData}\\ORB\\Private\\Settings"))
-                        return JsonConvert.DeserializeObject<SearchSettings>(System.IO.File.ReadAllText($"{AppData}\\ORB\\Private\\Settings"));
+                        return JsonConvert.DeserializeObject<Settings>(System.IO.File.ReadAllText($"{AppData}\\ORB\\Private\\Settings"));
                     else
-                        return new SearchSettings();
+                        return new Settings();
                 }
                 catch
                 {
-                    return new SearchSettings();
+                    return new Settings();
                 }
             }
 
@@ -549,6 +569,8 @@ namespace ORB4
             public bool AutoOpen { get; set; } = true;
             public bool SoundEffects { get; set; } = true;
             public bool OpenInGame { get; set; } = false;
+
+            public DownloadMirrors Mirror { get; set; } = DownloadMirrors.Bloodcat;
         }
 
         public List<int> _processedBeatmaps = new List<int>();
@@ -574,45 +596,53 @@ namespace ORB4
                     {
                         Beatmap beatmap = _downloadedBeatmaps.Dequeue();
 
-                        bool diff = beatmap.DifficultyRating <= Settings.MaxStars
-                            && beatmap.DifficultyRating >= Settings.MinStars;
+                        bool diff = beatmap.DifficultyRating <= LocalSettings.MaxStars
+                            && beatmap.DifficultyRating >= LocalSettings.MinStars;
 
-                        bool bpm = beatmap.BPM <= Settings.MaxBPM &&
-                            beatmap.BPM >= Settings.MinBPM;
+                        bool bpm = beatmap.BPM <= LocalSettings.MaxBPM &&
+                            beatmap.BPM >= LocalSettings.MinBPM;
 
-                        bool length = beatmap.TotalLength <= Settings.MaxLength
-                                && beatmap.TotalLength >= Settings.MinLength;
+                        bool length = beatmap.TotalLength <= LocalSettings.MaxLength
+                                && beatmap.TotalLength >= LocalSettings.MinLength;
 
                         DateTime update_date = DateTime.ParseExact(beatmap.LastUpdate, "yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
 
-                        bool mode = Settings.Modes.Any(x => x == beatmap.Mode) || Settings.Modes.Count == 0;
+                        bool mode = LocalSettings.Modes.Any(x => x == beatmap.Mode) || LocalSettings.Modes.Count == 0;
 
-                        bool genre = Settings.Genres.Any(x => x == beatmap.Genre) || Settings.Genres.Count == 0;
+                        bool genre = LocalSettings.Genres.Any(x => x == beatmap.Genre) || LocalSettings.Genres.Count == 0;
 
-                        bool ranking = Settings.RankStatus.Any(x => x == beatmap.RankStatus);
-                        bool old = Settings.OldBeatmaps ? update_date.Year < 2011 : true;
+                        if (LocalSettings.Ripple)
+                            genre = true;
 
-                        if (Settings.AnyDifficulty)
+                        bool ranking = LocalSettings.RankStatus.Any(x => x == beatmap.RankStatus);
+                        bool old = LocalSettings.OldBeatmaps ? update_date.Year < 2011 : true;
+
+                        if (LocalSettings.AnyDifficulty)
                             diff = true;
 
-                        if (Settings.AnyLength)
+                        if (LocalSettings.AnyLength)
                             length = true;
 
-                        if (Settings.AnyBPM)
+                        if (LocalSettings.AnyBPM)
                             bpm = true;
 
                         if (diff && length && mode && genre && ranking && old && bpm)
                         {
-                            if (Settings.AutoOpen)
+                            if (LocalSettings.AutoOpen)
                             {
                                 if (Running)
                                 {
-                                    if (Settings.OpenInGame)
+                                    if (LocalSettings.OpenInGame)
                                         Process.Start($"osu://b/{beatmap.BeatmapId}");
                                     else
-                                        Process.Start($"https://osu.ppy.sh/b/{beatmap.BeatmapId}");
+                                    {
+                                       if (!LocalSettings.Ripple)
+                                            Process.Start($"https://osu.ppy.sh/b/{beatmap.BeatmapId}");
+                                        else
+                                            Process.Start($"https://ripple.moe/b/{beatmap.BeatmapId}");
+                                    }
 
-                                    if (Settings.SoundEffects)
+                                    if (LocalSettings.SoundEffects)
                                     {
                                         if ((int)beatmap.RankStatus > 0 && (int)beatmap.RankStatus < 4)
                                         {
@@ -665,7 +695,7 @@ namespace ORB4
                                     _lovedCache.WriteBeatmaps(new Beatmap[] { beatmap });
                                 }
 
-                                if (Settings.SoundEffects)
+                                if (LocalSettings.SoundEffects)
                                 {
                                     if ((int)beatmap.RankStatus > 0 && (int)beatmap.RankStatus < 4)
                                     {
@@ -755,7 +785,8 @@ namespace ORB4
 
             while (Running)
             {
-                bool locked = false;
+                bool t_locked = false;
+                bool d_locked = false;
                 try
                 {
                     Console.WriteLine(_requestsCount);
@@ -781,7 +812,10 @@ namespace ORB4
                         {
                             link = _uncheckedLinks.Dequeue();
 
-                            id = int.Parse(link.Replace($"https://osu.ppy.sh/api/get_beatmaps?k={ApiKey}&s=", string.Empty));
+                            if (!LocalSettings.Ripple)
+                                id = int.Parse(link.Replace($"https://osu.ppy.sh/api/get_beatmaps?k={ApiKey}&s=", string.Empty));
+                            else
+                                id = int.Parse(link.Replace($"https://ripple.moe/api/get_beatmaps?k={ApiKey}&s=", string.Empty));
 
                             method = false;
                         }
@@ -806,7 +840,10 @@ namespace ORB4
                                     goto ChooseId;
                             }
 
-                            link = $"https://osu.ppy.sh/api/get_beatmaps?k={ApiKey}&{mChar}={id}";
+                            if (LocalSettings.Ripple)
+                                link = $"https://ripple.moe/api/get_beatmaps?k={ApiKey}&{mChar}={id}";
+                            else
+                                link = $"https://osu.ppy.sh/api/get_beatmaps?k={ApiKey}&{mChar}={id}";
                         }
 
                         HttpResponseMessage response =
@@ -845,6 +882,9 @@ namespace ORB4
                                 _lastRequestDateTime = DateTime.Now;
 
                                 Beatmap[] beatmaps = ((JArray)obj).ToObject<Beatmap[]>();
+
+                                _downloadedSemaphore.WaitOne();
+                                d_locked = true;
                                 if (beatmaps.Length > 0)
                                 {
                                     foreach (var beatmap in beatmaps)
@@ -855,12 +895,17 @@ namespace ORB4
 
                                     if (method == true)
                                     {
-                                        _uncheckedLinks.Enqueue($"https://osu.ppy.sh/api/get_beatmaps?k={ApiKey}&s={beatmaps[0].BeatmapsetId}");
+                                        if (!LocalSettings.Ripple)
+                                            _uncheckedLinks.Enqueue($"https://osu.ppy.sh/api/get_beatmaps?k={ApiKey}&s={beatmaps[0].BeatmapsetId}");
+                                        else
+                                            _uncheckedLinks.Enqueue($"https://ripple.moe/api/get_beatmaps?k={ApiKey}&s={beatmaps[0].BeatmapsetId}");
                                     }
                                 }
+                                d_locked = false;
+                                _downloadedSemaphore.Release();
 
                                 _testedSemaphore.WaitOne();
-                                locked = true;
+                                t_locked = true;
                                 if (method == true)
                                 {
                                     if (!_testedBeatmaps.Any(x => x == id))
@@ -871,7 +916,7 @@ namespace ORB4
                                     if (!_testedBeatmapsets.Any(x => x == id))
                                         _testedBeatmapsets.Add(id);
                                 }
-                                locked = false;
+                                t_locked = false;
                                 _testedSemaphore.Release();
 
                                 _lastError = string.Empty;
@@ -908,13 +953,16 @@ namespace ORB4
                 }
                 finally
                 {
-                    if (locked)
+                    if (t_locked)
                         _testedSemaphore.Release();
+
+                    if (d_locked)
+                        _downloadedSemaphore.Release();
                 }
             }
         }
 
-        public SearchSettings Settings { get; set; } = new SearchSettings();
+        public Settings LocalSettings { get; set; } = new Settings();
         public string ApiKey { get; set; }
 
         public void Start()
@@ -932,7 +980,7 @@ namespace ORB4
 
             _tasks.Clear();
 
-            if (Settings.AutoOpen)
+            if (LocalSettings.AutoOpen)
                 Threads = 8;
             else
                 Threads = 2;
@@ -959,8 +1007,19 @@ namespace ORB4
 
         public int Threads { get; private set; }
 
+
+        //private BeatmapsCache _rankedCache = new BeatmapsCache($"{Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}\\ORB\\RankedCache");
+        //private BeatmapsCache _unrankedCache = new BeatmapsCache($"{Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}\\ORB\\UnrankedCache");
+        //private BeatmapsCache _lovedCache = new BeatmapsCache($"{Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}\\ORB\\LovedCache");
+
         public Engine()
         {
+            string AppData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+
+            _rankedCache = new BeatmapsCache($"{Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}\\ORB\\RankedCache", this);
+            _unrankedCache = new BeatmapsCache($"{Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}\\ORB\\UnrankedCache", this);
+            _lovedCache = new BeatmapsCache($"{Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}\\ORB\\LovedCache", this);
+
             _cancellationTokenSource = new CancellationTokenSource();
             Threads = 0;
             _tasks = new List<Task>();

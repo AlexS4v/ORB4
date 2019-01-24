@@ -87,7 +87,7 @@
 </head>
 
 <body onload="updateSettings()" style="overflow-y: scroll">
-
+	<div style="margin: 5px;">
     <div id="settingsTitle" class="settings-title" style="opacity: 1;">Settings</div>
 
     <div class="setting" >
@@ -410,8 +410,54 @@
         </div> &nbsp;&nbsp;&nbsp; Other
     </div>
 
-    <div style="margin-top:20px;padding-left: 25px; text-align: left;">Developed by Zusupe Team <br><br> This program is not affiliated with the game osu! - All credits to Dean Herbert.</div>
-    <div style="width: 100%; height: 50px;"></div>
+	<div class="settings-group" style="margin-top: 30px; font-family: NotoRegular; font-size: 18px">Mirrors</div>
+
+	<div class="setting" style="margin-top:15px">
+        <div class="onoffswitch">
+            <input onchange="onChangeMirror(this.id)" type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="bloodcat_mirror">
+            <label class="onoffswitch-label" for="bloodcat_mirror"></label>
+        </div> &nbsp;&nbsp;&nbsp; Bloodcat
+    </div>
+
+	<div class="setting" style="margin-top:2px">
+        <div class="onoffswitch">
+            <input onchange="onChangeMirror(this.id)" type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="hexide_mirror">
+            <label class="onoffswitch-label" for="hexide_mirror"></label>
+        </div> &nbsp;&nbsp;&nbsp; Hexide
+    </div>
+
+	<script>
+		var hexideMirror = document.getElementById("hexide_mirror");
+		var bloodcatMirror = document.getElementById("bloodcat_mirror"); 
+
+		function onChangeMirror(id) {
+			if (id == "hexide_mirror") {
+				hexideMirror.checked = true;
+				bloodcatMirror.checked = false;
+				onChange(hexideMirror);
+			} else if (id == "bloodcat_mirror") {
+				hexideMirror.checked = false;
+				bloodcatMirror.checked = true;
+				onChange(bloodcatMirror);
+			}
+		}
+	</script>
+	
+	<div class="settings-group" style="margin-top: 30px; font-family: NotoRegular; font-size: 18px">Server</div>
+
+	<div class="setting" style="margin-top:15px">
+        <div class="onoffswitch">
+            <input onchange="onChange(this)" type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="ripple">
+            <label class="onoffswitch-label" for="ripple"></label>
+        </div> &nbsp;&nbsp;&nbsp; Ripple
+    </div>
+
+    <div style="margin-top:20px;padding-left: 25px; text-align: left;">Developed by Zusupe Team <br><br> This program is not affiliated with the game osu! <br><br> All credits to Dean Herbert.</div>
+	<div style="width: 100%; height: 50px;"></div>
+
+	</div>
+
+	
 </body>
 
 </html>

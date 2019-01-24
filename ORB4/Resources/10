@@ -8,9 +8,31 @@
 </head>
 
 <body style="overflow-y: auto;" onload="onStart()" oncontextmenu="return false">
-
+	<div style="margin: 0px;">
     <script>
-        function playSound(name) {
+		var mirror = false;
+		var previousMirror = undefined; 
+
+		function rightButtonBeatmap(e) {
+			var mirror = e.parentElement.childNodes[2];
+
+			if (previousMirror != undefined) {
+				if (previousMirror === mirror) {
+					if (mirror.style.width == "0px")
+						mirror.style.width = "160px";
+					else
+						mirror.style.width = "0";
+					return;
+				} else {
+					previousMirror.style.width = "0";
+				}
+			} 
+
+			mirror.style.width = "160px";
+			previousMirror = mirror;
+		}
+        
+		function playSound(name) {
             setTimeout(function () {
                 var request = new XMLHttpRequest();
                 request.open("GET", `/sounds/play?id=${name}`, true);
@@ -56,6 +78,14 @@
             return JSON.parse(request.responseText);
         }
 
+		function getMirrorName(){
+            var request = new XMLHttpRequest();
+			request.open("GET", '/engine/mirror', false);
+            request.send();
+
+            return request.responseText;
+		}
+
         var nameG = undefined;
         var working = false;
 
@@ -63,6 +93,8 @@
             if (working) {
                 return;
             }
+
+			mirrorName = getMirrorName();
 
             working = true;
 
@@ -108,6 +140,7 @@
 
                     var parent = document.createElement('div');
                     parent.id = element.id;
+					parent.setAttribute('b_id', element.b_id);
                     parent.className = 'beatmap-panel';
                     parent.style = 'margin-bottom: 10px';
 
@@ -138,11 +171,40 @@
 
                     author.appendChild(creator);
 
+					var mirror = document.createElement('div');
+					mirror.className = 'beatmap-panel-mirror';
+					var mirrorText = document.createElement('div');
+					mirrorText.className = 'beatmap-panel-mirror-text';
+					mirrorText.innerText = mirrorName;
+
+					mirror.onmouseup = function() {
+						if (event.button == 0) {
+							var request = new XMLHttpRequest();
+							request.open("GET", `/utils/open_beatmapset_mirror?id=${this.parentNode.id}&b_id=${this.parentNode.getAttribute('b_id')}`, false);
+							request.send();
+                        }
+					};
+
+
+					mirror.append(mirrorText);
+
                     information.appendChild(author);
-                    information.onmouseup = function () {
+					parent.append(mirror);
+
+                    image.onmouseup = function () {
                         if (event.button == 0) {
                             openBeatmapset(this);
-                        }
+                        } else if (event.button == 2){
+							rightButtonBeatmap(this);
+						}
+                    };
+
+					information.onmouseup = function () {
+                        if (event.button == 0) {
+                            openBeatmapset(this);
+                        } else if (event.button == 2){
+							rightButtonBeatmap(this);
+						}
                     };
 
                     beatmaps.appendChild(parent);
@@ -165,7 +227,7 @@
 
         function openBeatmapset(x) {
             var request = new XMLHttpRequest();
-            request.open("GET", `/utils/open_beatmapset?id=${x.parentNode.id}`, false);
+            request.open("GET", `/utils/open_beatmapset?id=${x.parentNode.id}&b_id=${x.parentNode.getAttribute('b_id')}`, false);
             request.send();
         }
 
@@ -207,17 +269,17 @@
     </script>
 
     <div style="position: absolute; padding: 30px; right:0; top: 0; z-index: 100;">
-        <button id="c_button" class="close-button" onmousedown="closeFrame()"></button>
+        <button id="c_button" class="close-button" onmouseup="closeFrame()"></button>
         <br>
     </div>
 
     <div id="settingsTitle" class="settings-title" style="opacity: 1;">Found beatmaps
         <div style="display: inline-block;">
-            <button id="s_button" class="save-button" onmousedown="saveBeatmaps()"></button>
+            <button id="s_button" class="save-button" onmouseup="saveBeatmaps()"></button>
             <br>
         </div>
         <div style="display: inline-block; margin-left: -10px">
-            <button id="cl_button" class="clear-button" onmousedown="clearBeatmaps()"></button>
+            <button id="cl_button" class="clear-button" onmouseup="clearBeatmaps()"></button>
             <br>
         </div>
     </div>
@@ -244,6 +306,7 @@
         </div> -->
 
     </div>
+	</div>
 </body>
 
 </html>

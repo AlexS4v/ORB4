@@ -84,6 +84,8 @@
                 document.body.insertBefore(settingsFrame, document.body.firstChild);
                 settingsFrame.style.transition = "750ms ease-in-out";
 
+				settingsFrame.focus();
+
                 settingsFrameTimeout = true;
 
                 setTimeout(function () {
@@ -157,6 +159,8 @@
 
                 document.body.insertBefore(beatmapsFrame, document.body.firstChild);
                 beatmapsFrame.style.transition = "750ms ease-in-out";
+
+				beatmapsFrame.focus();
 
                 beatmapsFrameTimeout = true;
 

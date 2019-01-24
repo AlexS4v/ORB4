@@ -33,7 +33,7 @@ input[type=number] {
     border-left: 0px;
     border-right: 0px;
     font-family: NotoRegular;
-    width: 100px;
+    width: 70px;
     border-bottom: 1px solid rgb(28, 145, 223);
     transition: 100ms ease-in-out;
 }
@@ -52,6 +52,22 @@ input[type=number] {
     white-space: nowrap !important;
     text-overflow: ellipsis !important;
     overflow: hidden !important;
+}
+
+.beatmap-panel-mirror {
+	width: 0;
+    transition: .5s;
+    background-repeat: no-repeat;
+    height: 100%;
+    display: block;
+    text-align: center;
+    vertical-align: middle;
+    background-color: indianred;
+    color: white;
+}
+
+.beatmap-panel-mirror-text {
+    margin-top: 25.5px;
 }
 
 .beatmap-panel-information{

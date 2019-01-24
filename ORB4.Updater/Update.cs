@@ -132,9 +132,9 @@ namespace ORB4.Updater
             {
                 var serializer = new JavaScriptSerializer();
 
-                RegistryKey SoftwareKey = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64);
+                RegistryKey SoftwareKey = RegistryKey.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Registry32);
                 CancellationTokenSource.Token.ThrowIfCancellationRequested();
-                 RegistryKey parent = SoftwareKey.OpenSubKey(
+                RegistryKey parent = SoftwareKey.OpenSubKey(
                     @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall", true);
 
                 RegistryKey orbKey;
@@ -168,7 +168,7 @@ namespace ORB4.Updater
                 foreach (var exe in exes)
                 {
                     string hash = Utils.CalculateSHA512FromPath(exe);
-                    string filename = exe.Replace(Path, "").Replace("\\", "/");
+                    string filename = exe.Replace(Path, "").Replace("\\", "/").ToLower();
 
                     if (hashset.Any(x => x.Key == filename))
                     {
@@ -235,18 +235,22 @@ namespace ORB4.Updater
 
         public async Task FinalizeUpdate()
         {
-            
-            using (FileStream fs = new FileStream(Path + "unins.dat", FileMode.CreateNew, FileAccess.Write))
+            if (System.IO.File.Exists(Path + "unins.dat"))
             {
                 string temp = System.IO.Path.GetTempFileName();
-                System.IO.File.Copy(Path + "unins.dat", temp);
-               
+                System.IO.File.Copy(Path + "unins.dat", temp, true);
+                System.IO.File.Delete(Path + "unins.dat");
+
                 AddRollbackOperation(() =>
                 {
                     System.IO.File.Delete(Path + "unins.dat");
                     System.IO.File.Copy(temp, Path + "unins.dat");
                     System.IO.File.Delete(temp);
                 });
+            }
+
+            using (FileStream fs = new FileStream(Path + "unins.dat", FileMode.CreateNew, FileAccess.Write))
+            {
 
                 foreach (var component in _installedComponents)
                 {
@@ -259,7 +263,7 @@ namespace ORB4.Updater
 
                     if (component.Value != 255)
                     {
-                        byte[] hash = Utils.CalculateSHA512BytesFromPath(Path + "\\" + component.Key);
+                        byte[] hash = Utils.CalculateSHA512BytesFromPath(component.Key);
                         await fs.WriteAsync(hash, 0, hash.Length);
                     }
                 }
@@ -324,6 +328,7 @@ namespace ORB4.Updater
                 {
                     string filename = string.Empty;
                     string dir = string.Empty;
+                    string rawDir = string.Empty;
 
                     if (archive.Entries[i].FullName.Contains("/"))
                     {
@@ -352,13 +357,14 @@ namespace ORB4.Updater
                             dir = Utils.Reverse(dir);
                         }
 
+                        rawDir = dir;
+
                         if (!System.IO.Directory.Exists(Path + dir))
                         {
                             System.IO.Directory.CreateDirectory(Path + dir);
                             _installedComponents.Add(Path + dir.Replace("/", "\\"), 255);
 
                             dir = System.IO.Path.Combine(Path + dir);
-
 
                             AddRollbackOperation(() =>
                             {
@@ -379,9 +385,9 @@ namespace ORB4.Updater
 
                     if (filename != string.Empty)
                     {
-                        if (_filesToUpdate.Any(x => x == archive.Entries[i].FullName))
+                        if (_filesToUpdate.Any(x => rawDir + x.ToLower() == archive.Entries[i].FullName.ToLower()))
                         {
-                            if (System.IO.File.Exists(Path + filename))
+                            if (System.IO.File.Exists(dir + filename))
                             {
                                 string temp = System.IO.Path.GetTempFileName();
 

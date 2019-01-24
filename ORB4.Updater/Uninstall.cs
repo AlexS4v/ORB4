@@ -40,6 +40,8 @@ namespace ORB4.Updater
                     string temp = System.IO.Path.GetTempFileName();
                     System.IO.File.Copy(file.Key, temp, true);
 
+                    _backupFiles.Add(temp);
+
                     AddRollbackOperation(() => {
                         if (System.IO.File.Exists(file.Key))
                             System.IO.File.Delete(file.Key);
@@ -134,35 +136,37 @@ namespace ORB4.Updater
                     }
 
 
-                    System.IO.FileStream fs = new System.IO.FileStream(dataPath, System.IO.FileMode.Open, System.IO.FileAccess.Read);
-
-                    while (fs.Position <= fs.Length - 1)
+                    using (System.IO.FileStream fs = new System.IO.FileStream(dataPath, System.IO.FileMode.Open, System.IO.FileAccess.Read))
                     {
-                        byte[] type = new byte[1];
-                        byte[] filenameLength = new byte[2];
-                        byte[] filename;
 
-                        await fs.ReadAsync(type, 0, type.Length);
-                        await fs.ReadAsync(filenameLength, 0, filenameLength.Length);
-
-                        ushort length = BitConverter.ToUInt16(filenameLength, 0);
-                        filename = new byte[length];
-
-                        await fs.ReadAsync(filename, 0, filename.Length);
-
-                        string encodedFilename = Encoding.UTF8.GetString(filename);
-
-                        if (type[0] == 0)
+                        while (fs.Position <= fs.Length - 1)
                         {
-                            byte[] hash = new byte[64];
-                            await fs.ReadAsync(hash, 0, hash.Length);
+                            byte[] type = new byte[1];
+                            byte[] filenameLength = new byte[2];
+                            byte[] filename;
 
-                            if (Utils.CalculateSHA512BytesFromPath(encodedFilename).SequenceEqual(hash))
+                            await fs.ReadAsync(type, 0, type.Length);
+                            await fs.ReadAsync(filenameLength, 0, filenameLength.Length);
+
+                            ushort length = BitConverter.ToUInt16(filenameLength, 0);
+                            filename = new byte[length];
+
+                            await fs.ReadAsync(filename, 0, filename.Length);
+
+                            string encodedFilename = Encoding.UTF8.GetString(filename);
+
+                            if (type[0] == 0)
+                            {
+                                byte[] hash = new byte[64];
+                                await fs.ReadAsync(hash, 0, hash.Length);
+
+                                if (Utils.CalculateSHA512BytesFromPath(encodedFilename).SequenceEqual(hash))
+                                    _componentsToUninstall.Add(encodedFilename, type[0]);
+                            }
+                            else
                                 _componentsToUninstall.Add(encodedFilename, type[0]);
-                        }
-                        else
-                            _componentsToUninstall.Add(encodedFilename, type[0]);
 
+                        }
                     }
                 }
 
@@ -181,23 +185,52 @@ namespace ORB4.Updater
         {
             try
             {
+                string tempPath = System.IO.Path.GetTempFileName();
+                System.IO.File.Copy(Path + "\\unins.dat", tempPath, true);
+
+                AddRollbackOperation(() => {
+                    System.IO.File.Copy(tempPath, Path + "\\unins.dat", true);
+
+                    System.IO.File.Delete(tempPath);
+                });
+
                 System.IO.File.Delete(Path + "unins.dat");
             } catch { }
 
             try
             {
-                Microsoft.Win32.RegistryKey rootKey =
-                    Microsoft.Win32.Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\", true);
+                RegistryKey SoftwareKey = RegistryKey.OpenBaseKey(RegistryHive.CurrentUser, RegistryView.Registry32);
+                CancellationTokenSource.Token.ThrowIfCancellationRequested();
+                RegistryKey parent = SoftwareKey.OpenSubKey(
+                    @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall", true);
 
                 AddRollbackOperation(() => {
-                    Microsoft.Win32.RegistryKey orbKey = rootKey.CreateSubKey("Osu! Random Beatmap");
+                    Microsoft.Win32.RegistryKey backupKey = parent.CreateSubKey("Osu! Random Beatmap");
                     foreach (var valueName in _valueNamesBackup)
                     {
-                        orbKey.SetValue(valueName.Key, valueName.Value);
+                        backupKey.SetValue(valueName.Key, valueName.Value);
                     }
                 });
 
-                rootKey.DeleteSubKey("Osu! Random Beatmap");
+                var orbKey = parent.OpenSubKey("Osu! Random Beatmap");
+                object deskShrt = orbKey.GetValue("DesktopShortcut");
+
+                if (deskShrt != null) {
+                    string value = (string)deskShrt;
+                    if (value != "null")
+                        System.IO.File.Delete(value);
+                }
+
+                object quickShrt = orbKey.GetValue("QuickMenuShortcut");
+
+                if (quickShrt != null)
+                {
+                    string value = (string)quickShrt;
+                    if (value != "null")
+                        System.IO.File.Delete(value);
+                }
+
+                parent.DeleteSubKey("Osu! Random Beatmap");
             }
             catch (Exception e)
             {

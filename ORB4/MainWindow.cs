@@ -39,6 +39,11 @@ namespace ORB4
             _engine = engine;
         }
 
+        public string GetVersion()
+        {
+            return Engine.Version;
+        }
+
         public void OpenUrl(string url)
         {
             System.Diagnostics.Process.Start(url);
@@ -144,7 +149,7 @@ namespace ORB4
         {
             if (e.IsBrowserInitialized)
             {
-            //    _browser.ShowDevTools();
+                //_browser.ShowDevTools();
                 Logger.MainLogger.Log(Logger.LogTypes.Info, "CookieManager.Initialize -> Success");
 
                 predW = this.Width;

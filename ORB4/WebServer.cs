@@ -42,7 +42,7 @@ namespace ORB4
         {
             _thumbnailsSemaphore = new System.Threading.SemaphoreSlim(1, 1);
             _listener = new HttpListener();
-            Engine = new Engine() { ApiKey = "", Settings = ORB4.Engine.SearchSettings.Load() };
+            Engine = new Engine() { ApiKey = "", LocalSettings = ORB4.Engine.Settings.Load() };
 
             Token = Guid.NewGuid().ToByteArray();
 
@@ -139,7 +139,7 @@ namespace ORB4
                             context.Response.StatusCode = 200;
                             bytes = new byte[] { };
 
-                            if (!Engine.Settings.AutoOpen)
+                            if (!Engine.LocalSettings.AutoOpen)
                             {
                                 bytes = Encoding.UTF8.GetBytes("Beatmaps_viewer");
                             }
@@ -215,6 +215,16 @@ namespace ORB4
                             await context.Response.OutputStream.WriteAsync(new byte[] { }, 0, 0);
                             context.Response.OutputStream.Close();
                             break;
+                        case "/engine/mirror":
+                            context.Response.StatusCode = 200;
+                            context.Response.ContentType = "text/plain";
+
+                            bytes = Encoding.UTF8.GetBytes(Engine.LocalSettings.Mirror.ToString().ToUpper());
+
+                            await context.Response.OutputStream.WriteAsync(bytes, 0, bytes.Length);
+
+                            context.Response.OutputStream.Close();
+                            return;
                         default:
                             if (context.Request.RawUrl.Contains("/engine/settings"))
                             {
@@ -280,9 +290,11 @@ namespace ORB4
 
                                 context.Response.OutputStream.Close();
                             }
-                            else if (context.Request.RawUrl.Contains("/utils/open_beatmapset"))
+                            else if (context.Request.RawUrl.Contains("/utils/open_beatmapset_mirror"))
                             {
                                 string query = context.Request.QueryString["id"];
+                                string query_bId = context.Request.QueryString["b_id"];
+
                                 if (query != string.Empty)
                                 {
                                     context.Response.StatusCode = 200;
@@ -293,16 +305,54 @@ namespace ORB4
                                         break;
                                     }
 
-                                    if (Engine.Settings.OpenInGame)
-                                        Process.Start($"osu://s/{query}");
-                                    else
-                                        Process.Start($"https://osu.ppy.sh/s/{query}");
+                                    switch (Engine.LocalSettings.Mirror)
+                                    {
+                                        case Engine.DownloadMirrors.Hexide:
+                                            Process.Start($"https://osu.hexide.com/beatmaps/{query}/download/novid/no-video.osz");
+                                            break;
+                                        case Engine.DownloadMirrors.Bloodcat:
+                                            Process.Start($"https://bloodcat.com/osu/s/{query}");
+                                            break;
+                                        default:
+                                            break;
+                                    }
 
                                     await context.Response.OutputStream.WriteAsync(new byte[] { }, 0, 0);
                                     context.Response.OutputStream.Close();
                                 }
                                 return;
                             }
+                            else if (context.Request.RawUrl.Contains("/utils/open_beatmapset"))
+                            {
+                                string query = context.Request.QueryString["id"];
+                                string query_bId = context.Request.QueryString["b_id"];
+
+                                if (query != string.Empty)
+                                {
+                                    context.Response.StatusCode = 200;
+                                    context.Response.ContentType = "text/plain";
+
+                                    if (!int.TryParse(query, out int i))
+                                    {
+                                        break;
+                                    }
+
+                                    if (Engine.LocalSettings.OpenInGame)
+                                        Process.Start($"osu://s/{query}");
+                                    else
+                                    {
+                                        if (!Engine.Ripple)
+                                            Process.Start($"https://osu.ppy.sh/s/{query}");
+                                        else
+                                            Process.Start($"https://ripple.moe/b/{query_bId}");
+                                    }
+                                    
+                                    await context.Response.OutputStream.WriteAsync(new byte[] { }, 0, 0);
+                                    context.Response.OutputStream.Close();
+                                }
+                                return;
+                            }
+                            
                             else if (context.Request.RawUrl.Contains("/images/get_beatmap_image"))
                             {
                                 await _thumbnailsSemaphore.WaitAsync();
@@ -328,7 +378,7 @@ namespace ORB4
                                 context.Response.StatusCode = 200;
                                 context.Response.ContentType = "text/plain";
 
-                                if (Engine.Settings.SoundEffects)
+                                if (Engine.LocalSettings.SoundEffects)
                                 {
                                     string query = context.Request.QueryString["id"];
 
@@ -363,21 +413,23 @@ namespace ORB4
         {
             JArray settings = new JArray
             {
-                new JObject() { { "id", "auto_open" }, { "checked", Engine.Settings.AutoOpen.ToString().ToLower()  } },
+                new JObject() { { "id", "auto_open" }, { "checked", Engine.LocalSettings.AutoOpen.ToString().ToLower()  } },
                 new JObject() { { "id", "api_key" }, { "value", (Engine.ApiKey != string.Empty) ? Engine.GetAPIKeySha512() : string.Empty } },
-                new JObject() { { "id", "open_in_game" }, { "checked", Engine.Settings.OpenInGame.ToString().ToLower()  } },
-                new JObject() { { "id", "old_beatmaps" }, { "checked", Engine.Settings.OldBeatmaps.ToString().ToLower()  } },
-                new JObject() { { "id", "max_stars"}, { "value", Engine.Settings.MaxStars.ToString(System.Globalization.CultureInfo.GetCultureInfo("en-US")) } },
-                new JObject() { { "id", "min_stars"}, { "value", Engine.Settings.MinStars.ToString(System.Globalization.CultureInfo.GetCultureInfo("en-US")) } },
-                new JObject() { { "id", "max_length"}, { "value", Engine.Settings.MaxLength.ToString(System.Globalization.CultureInfo.GetCultureInfo("en-US")) } },
-                new JObject() { { "id", "min_length"}, { "value", Engine.Settings.MinLength.ToString(System.Globalization.CultureInfo.GetCultureInfo("en-US")) } },
-                new JObject() { { "id", "max_bpm"}, { "value", Engine.Settings.MaxBPM.ToString(System.Globalization.CultureInfo.GetCultureInfo("en-US")) } },
-                new JObject() { { "id", "min_bpm"}, { "value", Engine.Settings.MinBPM.ToString(System.Globalization.CultureInfo.GetCultureInfo("en-US")) } },
-                new JObject() { { "id", "any_bpm"}, { "checked", Engine.Settings.AnyBPM.ToString().ToLower() } },
-                new JObject() { { "id", "any_difficulty"}, { "checked", Engine.Settings.AnyDifficulty.ToString().ToLower() } },
-                new JObject() { { "id", "any_length"}, { "checked", Engine.Settings.AnyLength.ToString().ToLower() } },
-                new JObject() { { "id", "sound_effects"}, { "checked", Engine.Settings.SoundEffects.ToString().ToLower() } }
-                
+                new JObject() { { "id", "open_in_game" }, { "checked", Engine.LocalSettings.OpenInGame.ToString().ToLower()  } },
+                new JObject() { { "id", "old_beatmaps" }, { "checked", Engine.LocalSettings.OldBeatmaps.ToString().ToLower()  } },
+                new JObject() { { "id", "max_stars"}, { "value", Engine.LocalSettings.MaxStars.ToString(System.Globalization.CultureInfo.GetCultureInfo("en-US")) } },
+                new JObject() { { "id", "min_stars"}, { "value", Engine.LocalSettings.MinStars.ToString(System.Globalization.CultureInfo.GetCultureInfo("en-US")) } },
+                new JObject() { { "id", "max_length"}, { "value", Engine.LocalSettings.MaxLength.ToString(System.Globalization.CultureInfo.GetCultureInfo("en-US")) } },
+                new JObject() { { "id", "min_length"}, { "value", Engine.LocalSettings.MinLength.ToString(System.Globalization.CultureInfo.GetCultureInfo("en-US")) } },
+                new JObject() { { "id", "max_bpm"}, { "value", Engine.LocalSettings.MaxBPM.ToString(System.Globalization.CultureInfo.GetCultureInfo("en-US")) } },
+                new JObject() { { "id", "min_bpm"}, { "value", Engine.LocalSettings.MinBPM.ToString(System.Globalization.CultureInfo.GetCultureInfo("en-US")) } },
+                new JObject() { { "id", "any_bpm"}, { "checked", Engine.LocalSettings.AnyBPM.ToString().ToLower() } },
+                new JObject() { { "id", "any_difficulty"}, { "checked", Engine.LocalSettings.AnyDifficulty.ToString().ToLower() } },
+                new JObject() { { "id", "any_length"}, { "checked", Engine.LocalSettings.AnyLength.ToString().ToLower() } },
+                new JObject() { { "id", "sound_effects"}, { "checked", Engine.LocalSettings.SoundEffects.ToString().ToLower() } },
+                new JObject() { { "id", "hexide_mirror"}, { "checked", Engine.LocalSettings.Mirror == Engine.DownloadMirrors.Hexide ? "true" : "false" } },
+                new JObject() { { "id", "bloodcat_mirror"}, { "checked", Engine.LocalSettings.Mirror == Engine.DownloadMirrors.Bloodcat ? "true" : "false" } },
+                new JObject() { { "id", "ripple" }, { "checked", Engine.LocalSettings.Ripple.ToString().ToLower() } }
             };
 
             var modes = Enum.GetValues(typeof(Engine.Modes)).Cast<Engine.Modes>().ToArray();
@@ -388,14 +440,14 @@ namespace ORB4
             {
                 if (mode == Engine.Modes.CatchTheBeat)
                 {
-                    if (Engine.Settings.Modes.Contains(mode))
+                    if (Engine.LocalSettings.Modes.Contains(mode))
                         settings.Add(new JObject() { { "id", "catch_the_beat" }, { "checked", "true" } });
                     else
                         settings.Add(new JObject() { { "id", "catch_the_beat" }, { "checked", "false" } });
                 }
                 else
                 {
-                    if (Engine.Settings.Modes.Contains(mode))
+                    if (Engine.LocalSettings.Modes.Contains(mode))
                         settings.Add(new JObject() { { "id", mode.ToString().ToLower() }, { "checked", "true" } });
                     else
                         settings.Add(new JObject() { { "id", mode.ToString().ToLower() }, { "checked", "false" } });
@@ -404,7 +456,7 @@ namespace ORB4
 
             foreach (var status in rankStatus)
             {
-                if (Engine.Settings.RankStatus.Contains(status))
+                if (Engine.LocalSettings.RankStatus.Contains(status))
                     settings.Add(new JObject() { { "id", status.ToString().ToLower() }, { "checked", "true" } });
                 else
                     settings.Add(new JObject() { { "id", status.ToString().ToLower() }, { "checked", "false" } });
@@ -414,21 +466,21 @@ namespace ORB4
             {
                 if (genre == Engine.Genres.HipHop)
                 {
-                    if (Engine.Settings.Genres.Contains(genre))
+                    if (Engine.LocalSettings.Genres.Contains(genre))
                         settings.Add(new JObject() { { "id", "hip_hop" }, { "checked", "true" } });
                     else
                         settings.Add(new JObject() { { "id", "hip_hop" }, { "checked", "false" } });
                 }
                 else if (genre == Engine.Genres.VideoGame)
                 {
-                    if (Engine.Settings.Genres.Contains(genre))
+                    if (Engine.LocalSettings.Genres.Contains(genre))
                         settings.Add(new JObject() { { "id", "video_game" }, { "checked", "true" } });
                     else
                         settings.Add(new JObject() { { "id", "video_game" }, { "checked", "false" } });
                 }
                 else
                 {
-                    if (Engine.Settings.Genres.Contains(genre))
+                    if (Engine.LocalSettings.Genres.Contains(genre))
                         settings.Add(new JObject() { { "id", genre.ToString().ToLower() }, { "checked", "true" } });
                     else
                         settings.Add(new JObject() { { "id", genre.ToString().ToLower() }, { "checked", "false" } });
@@ -449,85 +501,94 @@ namespace ORB4
             switch (id)
             {
                 case "sound_effects":
-                    Engine.Settings.SoundEffects = bool.Parse(check);
+                    Engine.LocalSettings.SoundEffects = bool.Parse(check);
                     break;
                 case "any_bpm":
-                    Engine.Settings.AnyBPM = bool.Parse(check);
+                    Engine.LocalSettings.AnyBPM = bool.Parse(check);
                     break;
                 case "any_difficulty":
-                    Engine.Settings.AnyDifficulty = bool.Parse(check);
+                    Engine.LocalSettings.AnyDifficulty = bool.Parse(check);
                     break;
                 case "any_length":
-                    Engine.Settings.AnyLength = bool.Parse(check);
+                    Engine.LocalSettings.AnyLength = bool.Parse(check);
                     break;
                 case "auto_open":
-                    Engine.Settings.AutoOpen = bool.Parse(check);
+                    Engine.LocalSettings.AutoOpen = bool.Parse(check);
                     break;
                 case "open_in_game":
-                    Engine.Settings.OpenInGame = bool.Parse(check);
+                    Engine.LocalSettings.OpenInGame = bool.Parse(check);
                     break;
                 case "old_beatmaps":
-                    Engine.Settings.OldBeatmaps = bool.Parse(check);
+                    Engine.LocalSettings.OldBeatmaps = bool.Parse(check);
                     break;
                 case "max_stars":
                     try
                     {
-                        Engine.Settings.MaxStars = float.Parse(value, System.Globalization.CultureInfo.GetCultureInfo("en-US"));
+                        Engine.LocalSettings.MaxStars = float.Parse(value, System.Globalization.CultureInfo.GetCultureInfo("en-US"));
                     }
                     catch
                     {
-                        Engine.Settings.MaxStars = 100;
+                        Engine.LocalSettings.MaxStars = 100;
                     }
                     break;
                 case "min_stars":
                     try
                     {
-                        Engine.Settings.MinStars = float.Parse(value, System.Globalization.CultureInfo.GetCultureInfo("en-US"));
+                        Engine.LocalSettings.MinStars = float.Parse(value, System.Globalization.CultureInfo.GetCultureInfo("en-US"));
                     }
                     catch
                     {
-                        Engine.Settings.MinStars = 100;
+                        Engine.LocalSettings.MinStars = 100;
                     }
                     break;
                 case "max_length":
                     try
                     {
-                        Engine.Settings.MaxLength = int.Parse(value, System.Globalization.CultureInfo.GetCultureInfo("en-US"));
+                        Engine.LocalSettings.MaxLength = int.Parse(value, System.Globalization.CultureInfo.GetCultureInfo("en-US"));
                     }
                     catch
                     {
-                        Engine.Settings.MaxLength = 600;
+                        Engine.LocalSettings.MaxLength = 600;
                     }
                     break;
                 case "min_length":
                     try
                     {
-                        Engine.Settings.MinLength = int.Parse(value, System.Globalization.CultureInfo.GetCultureInfo("en-US"));
+                        Engine.LocalSettings.MinLength = int.Parse(value, System.Globalization.CultureInfo.GetCultureInfo("en-US"));
                     }
                     catch
                     {
-                        Engine.Settings.MinLength = 0;
+                        Engine.LocalSettings.MinLength = 0;
                     }
                     break;
                 case "max_bpm":
                     try
                     {
-                        Engine.Settings.MaxBPM = float.Parse(value, System.Globalization.CultureInfo.GetCultureInfo("en-US"));
+                        Engine.LocalSettings.MaxBPM = float.Parse(value, System.Globalization.CultureInfo.GetCultureInfo("en-US"));
                     }
                     catch
                     {
-                        Engine.Settings.MaxBPM = 250;
+                        Engine.LocalSettings.MaxBPM = 250;
                     }
                     break;
                 case "min_bpm":
                     try
                     {
-                        Engine.Settings.MinBPM = float.Parse(value, System.Globalization.CultureInfo.GetCultureInfo("en-US"));
+                        Engine.LocalSettings.MinBPM = float.Parse(value, System.Globalization.CultureInfo.GetCultureInfo("en-US"));
                     }
                     catch
                     {
-                        Engine.Settings.MinBPM = 0;
+                        Engine.LocalSettings.MinBPM = 0;
                     }
+                    break;
+                case "hexide_mirror":
+                    Engine.LocalSettings.Mirror = Engine.DownloadMirrors.Hexide;
+                    break;
+                case "bloodcat_mirror":
+                    Engine.LocalSettings.Mirror = Engine.DownloadMirrors.Bloodcat;
+                    break;
+                case "ripple":
+                    Engine.LocalSettings.Ripple = bool.Parse(check);
                     break;
                 default:
                     break;
@@ -543,30 +604,30 @@ namespace ORB4
             {
                 //Console.WriteLine(modes.First(x => x.ToString().ToLower() == id).ToString());
                 if (bool.Parse(check))
-                    Engine.Settings.Modes.Add(modes.First(x => x.ToString().ToLower() == id));
+                    Engine.LocalSettings.Modes.Add(modes.First(x => x.ToString().ToLower() == id));
                 else
-                    Engine.Settings.Modes.Remove(modes.First(x => x.ToString().ToLower() == id));
+                    Engine.LocalSettings.Modes.Remove(modes.First(x => x.ToString().ToLower() == id));
             }
 
             if (genres.Any(x => x.ToString().ToLower() == id))
             {
                 //Console.WriteLine(genres.First(x => x.ToString().ToLower() == id).ToString());
                 if (bool.Parse(check))
-                    Engine.Settings.Genres.Add(genres.First(x => x.ToString().ToLower() == id));
+                    Engine.LocalSettings.Genres.Add(genres.First(x => x.ToString().ToLower() == id));
                 else
-                    Engine.Settings.Genres.Remove(genres.First(x => x.ToString().ToLower() == id));
+                    Engine.LocalSettings.Genres.Remove(genres.First(x => x.ToString().ToLower() == id));
             }
 
             if (rankStatus.Any(x => x.ToString().ToLower() == id))
             {
                 //Console.WriteLine(rankStatus.First(x => x.ToString().ToLower() == id).ToString());
                 if (bool.Parse(check))
-                    Engine.Settings.RankStatus.Add(rankStatus.First(x => x.ToString().ToLower() == id));
+                    Engine.LocalSettings.RankStatus.Add(rankStatus.First(x => x.ToString().ToLower() == id));
                 else
-                    Engine.Settings.RankStatus.Remove(rankStatus.First(x => x.ToString().ToLower() == id));
+                    Engine.LocalSettings.RankStatus.Remove(rankStatus.First(x => x.ToString().ToLower() == id));
             }
 
-            Task.Factory.StartNew(async () => { await Task.Delay(1); Engine.Settings.Save(); });
+            Task.Factory.StartNew(async () => { await Task.Delay(1); Engine.LocalSettings.Save(); });
         }
 
         private async Task Update()

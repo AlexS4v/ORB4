@@ -47,31 +47,45 @@ namespace ORB4.Updater
 
         public static string CalculateSHA512FromPath(string path)
         {
-            using (var algorithm = SHA512.Create())
+            try
             {
-                byte[] hash = null;
-
-                using (var fs = new System.IO.FileStream(path, System.IO.FileMode.Open, System.IO.FileAccess.Read))
+                using (var algorithm = SHA512.Create())
                 {
-                    hash = algorithm.ComputeHash(fs);
+                    byte[] hash = null;
+
+                    using (var fs = new System.IO.FileStream(path, System.IO.FileMode.Open, System.IO.FileAccess.Read))
+                    {
+                        hash = algorithm.ComputeHash(fs);
+                    }
+
+                    StringBuilder sb = new StringBuilder();
+                    foreach (byte b in hash)
+                        sb.Append(b.ToString("X2"));
+
+                    return sb.ToString().ToLower();
                 }
-
-                StringBuilder sb = new StringBuilder();
-                foreach (byte b in hash)
-                    sb.Append(b.ToString("X2"));
-
-                return sb.ToString().ToLower();
+            } catch (Exception e)
+            {
+                System.IO.File.WriteAllText(Path.GetTempFileName(), e.ToString());
+                return string.Empty;
             }
         }
 
         public static byte[] CalculateSHA512BytesFromPath(string path)
         {
-            using (var algorithm = SHA512.Create())
+            try
             {
-                using (var fs = new System.IO.FileStream(path, System.IO.FileMode.Open, System.IO.FileAccess.Read))
+                using (var algorithm = SHA512.Create())
                 {
-                    return algorithm.ComputeHash(fs);
+                    using (var fs = new System.IO.FileStream(path, System.IO.FileMode.Open, System.IO.FileAccess.Read))
+                    {
+                        return algorithm.ComputeHash(fs);
+                    }
                 }
+            } catch (Exception e)
+            {
+                System.IO.File.WriteAllText(Path.GetTempFileName(), e.ToString());
+                return new byte[0];
             }
         }
 
@@ -108,6 +122,7 @@ namespace ORB4.Updater
         {
             using (HttpClient client = new HttpClient())
             {
+                client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Safari/537.36");
                 try
                 {
                     const long TimeoutLimit = 10000;
@@ -262,11 +277,6 @@ namespace ORB4.Updater
                 orbKey.SetValue("UninstallString", Path + "\\ORB4.exe --uninstall", RegistryValueKind.String);
                 orbKey.SetValue("NoModify", 1, RegistryValueKind.DWord);
 
-                orbKey.Close();
-                parent.Close();
-
-                parent = null;
-                orbKey = null;
 
                 AddRollbackOperation(() =>
                 {
@@ -290,11 +300,17 @@ namespace ORB4.Updater
                     shortcut.Description = "A program that gives you random beatmaps for the game osu!";
                     shortcut.TargetPath = Path + "\\ORB4.exe";
                     shortcut.Save();
+                    
+                    orbKey.SetValue("DesktopShortcut", shortcutAddress);
 
                     AddRollbackOperation(() =>
                     {
                         System.IO.File.Delete(shortcutAddress);
                     });
+                }
+                else
+                {
+                    orbKey.SetValue("DesktopShortcut", "null");
                 }
 
                 CancellationTokenSource.Token.ThrowIfCancellationRequested();
@@ -310,12 +326,24 @@ namespace ORB4.Updater
                     shortcut.Description = "A program that gives you random beatmaps for the game osu!";
                     shortcut.TargetPath = Path + "\\ORB4.exe";
                     shortcut.Save();
+                    
+                    orbKey.SetValue("QuickMenuShortcut", path);
 
                     AddRollbackOperation(() =>
                     {
                         System.IO.File.Delete(shortcutAddress);
                     });
                 }
+                else
+                {
+                    orbKey.SetValue("QuickMenuShortcut", "null");
+                }
+
+                orbKey.Close();
+                parent.Close();
+
+                parent = null;
+                orbKey = null;
 
                 using (FileStream fs = new FileStream(Path + "unins.dat", FileMode.CreateNew, FileAccess.Write)) {
 
