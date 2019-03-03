@@ -121,6 +121,9 @@
   <data name="Click" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\7;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
+  <data name="Downloaded" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\Downloaded;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
   <data name="Found" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\8;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
@@ -157,8 +160,35 @@
   <data name="_16" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\16;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
+  <data name="_17" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\17;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="_18" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\18;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="_19" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\19;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
   <data name="_2" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\2;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="_20" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\20;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="_21" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\21;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="_22" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\22;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="_23" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\23;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="_24" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\24;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="_25" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\25;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="_3" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\3;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>

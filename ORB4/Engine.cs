@@ -23,7 +23,7 @@ namespace ORB4
             Hexide, Bloodcat 
         }
 
-        public const string Version = "4.0S";
+        public const string Version = "4.2T";
 
         public const int MaxRequestsPerMinute = 350;
 
@@ -527,7 +527,8 @@ namespace ORB4
                 Engine.RankStatus.Ranked, Engine.RankStatus.Loved, Engine.RankStatus.Qualified};
             public HashSet<Modes> Modes { get; set; } = new HashSet<Modes> { Engine.Modes.Standard };
             public HashSet<Genres> Genres { get; set; } = new HashSet<Genres>() { Engine.Genres.Anime, Engine.Genres.Electronic, Engine.Genres.Pop, Engine.Genres.HipHop, Engine.Genres.Novelty, Engine.Genres.Other, Engine.Genres.Rock, Engine.Genres.Unspecified, Engine.Genres.VideoGame };
-            public bool OldBeatmaps { get; set; } = false;
+            public bool OldBeatmapsB { get; set; } = true;
+            public bool NewBeatmapsB { get; set; } = true;
 
             public float MinBPM { get; set; } = 0;
             public float MaxBPM { get; set; } = 250;
@@ -540,6 +541,7 @@ namespace ORB4
             public bool AnyDifficulty { get; set; } = true;
             public bool AnyLength { get; set; } = true;
             public bool AnyBPM { get; set; } = true;
+            public bool NightMode { get; set; } = false;
 
             public static Settings Load()
             {
@@ -583,7 +585,7 @@ namespace ORB4
                 {
                     await Task.Delay(1);
 
-                    if (ApiKey == string.Empty)
+                    if (ApiKey == string.Empty && !Ripple)
                     {
                         _lastError = "Invalid API key";
                         _invalidApiKey = true;
@@ -615,7 +617,8 @@ namespace ORB4
                             genre = true;
 
                         bool ranking = LocalSettings.RankStatus.Any(x => x == beatmap.RankStatus);
-                        bool old = LocalSettings.OldBeatmaps ? update_date.Year < 2011 : true;
+                        bool oldB = LocalSettings.OldBeatmapsB ? update_date.Year <= 2011 : false;
+                        bool newB = LocalSettings.NewBeatmapsB ? update_date.Year > 2011 : false;
 
                         if (LocalSettings.AnyDifficulty)
                             diff = true;
@@ -626,7 +629,7 @@ namespace ORB4
                         if (LocalSettings.AnyBPM)
                             bpm = true;
 
-                        if (diff && length && mode && genre && ranking && old && bpm)
+                        if (diff && length && mode && genre && ranking && (oldB || newB) && bpm)
                         {
                             if (LocalSettings.AutoOpen)
                             {
@@ -781,6 +784,8 @@ namespace ORB4
                 Timeout = new TimeSpan(0, 0, 5)
             };
 
+            client.DefaultRequestHeaders.Add("user-agent", $"ORB ({Version})");
+
             Logger.MainLogger.Log(Logger.LogTypes.Info, "SearchThread.Start -> Success");
 
             while (Running)
@@ -802,8 +807,8 @@ namespace ORB4
                         await Task.Delay(1000);
                         continue;
                     }
-
-                    if (ApiKey != string.Empty)
+ 
+                    if (ApiKey != string.Empty || Ripple)
                     {
                         string link = string.Empty;
                         bool method = true; int id = 0;
@@ -813,7 +818,7 @@ namespace ORB4
                             link = _uncheckedLinks.Dequeue();
 
                             if (!LocalSettings.Ripple)
-                                id = int.Parse(link.Replace($"https://osu.ppy.sh/api/get_beatmaps?k={ApiKey}&s=", string.Empty));
+                                id = int.Parse(link.Replace($"https://osu.ppy.sh/api/get_beatmaps?k=NULL&s=", string.Empty));
                             else
                                 id = int.Parse(link.Replace($"https://ripple.moe/api/get_beatmaps?k={ApiKey}&s=", string.Empty));
 
@@ -824,7 +829,7 @@ namespace ORB4
                             method = (RandomHelper.NextDouble() > 0.5);
 
                             ChooseId:
-                            id = method ? RandomHelper.Next(1, 1800000) : RandomHelper.Next(0, 1000000);
+                            id = method ? RandomHelper.Next(71, 2500000) : RandomHelper.Next(1, 1500000);
                             char mChar = method ? 'b' : 's';
 
                             if (method == true)
@@ -841,7 +846,7 @@ namespace ORB4
                             }
 
                             if (LocalSettings.Ripple)
-                                link = $"https://ripple.moe/api/get_beatmaps?k={ApiKey}&{mChar}={id}";
+                                link = $"https://ripple.moe/api/get_beatmaps?k=NULL&{mChar}={id}";
                             else
                                 link = $"https://osu.ppy.sh/api/get_beatmaps?k={ApiKey}&{mChar}={id}";
                         }
@@ -967,6 +972,12 @@ namespace ORB4
 
         public void Start()
         {
+            if (!LocalSettings.OldBeatmapsB && !LocalSettings.NewBeatmapsB)
+            {
+                if (System.Windows.Forms.MessageBox.Show("Please, enable at least old or new beatmaps in the settings in order to search.", "...Really?", System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Exclamation) == System.Windows.Forms.DialogResult.OK)
+                { return; }
+            }
+
             _cancellationTokenSource = new CancellationTokenSource();
             _invalidApiKey = false;
             _lastError = string.Empty;

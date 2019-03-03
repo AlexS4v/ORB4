@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html>
+
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="/progressbar.js"></script>
+    <link rel="stylesheet" type="text/css" media="screen" href="../css/main.css">
+</head>
+
+<body style="overflow-y: auto;">
+    <script>
+        var updating = [];
+
+        function updateProgressBar(bar, id, progress_status_helper, timer) {
+            var req2 = new XMLHttpRequest();
+            req2.open('GET', `/downloader/dls?id=${id}`, false);
+            req2.send();
+
+            obj = JSON.parse(req2.responseText);
+            if (obj.error != undefined) {
+                clearInterval(timer);
+            }
+
+            if (obj.Status == 2) {
+                if (timer != undefined) clearInterval(timer);
+
+                if (!isDarkMode())
+                bar.text.style.color = 'darkgreen';
+                else //a0c1a0
+                bar.text.style.color = '#a0c1a0';
+
+
+                bar.color = '#FF0000';
+                bar.from = { color: '#FF0000', width: 10 };
+                bar.to = { color: '#FF0000', width: 10 };
+
+                progress_status_helper.dl_success = true;
+
+                bar.animate(1.0);
+            }
+            else if (obj.Status == 4) {
+                clearInterval(timer);
+            }
+            else if (obj.Status == 3) {
+                clearInterval(timer);
+
+                bar.text.style.color = 'red';
+                bar.color = '#FF0000';
+                bar.from = { color: '#FF0000', width: 10 };
+                bar.to = { color: '#FF0000', width: 10 };
+
+                progress_status_helper.dl_error = true;
+                bar.animate(1.0);
+            } else {
+                bar.animate((1 / 100) * obj.Percentage);
+            }
+        }
+
+        function stop(id, beatmapId) {
+            if (id == -2)
+                return;
+
+            var req2 = new XMLHttpRequest();
+            req2.open('GET', `/downloader/stop?id=${id}`, false);
+            req2.send();
+
+            if (req2.readyState == 4 && req2.status == 200) {
+                document.getElementById(`${beatmapId}_progress`).innerHTML = '';
+                return false;
+            } else if (req2.readyState == 4 && req2.status == 400) {
+                return true;
+            }
+        }
+
+        function createDownload(beatmapId, id, obj, info) {
+            if (id == -3) {
+                cSharpTools.calmDownMessageBox();
+                return;
+            }
+
+            if (id == -2)
+                return;
+
+            if (obj == undefined)
+                loli = document.getElementById(`${beatmapId}_progress`);
+            else loli = obj;
+
+            loli.innerHTML = '';
+
+            var progress_status_helper = {
+                dl_error: false,
+                dl_success: false,
+                dl_stop: false
+            };
+
+            if (!isDarkMode())
+            var bar = new ProgressBar.Circle(loli, {
+                trailColor: '#aaa',
+                color: ('#aaa'),
+
+                strokeWidth: 10,
+                trailWidth: 10,
+                easing: 'easeInOut',
+                duration: 1400,
+                text: {
+                    autoStyleContainer: false
+                },
+                from: { color: '#00BFFF', width: 10 },
+                to: { color: '#00BFFF', width: 10 },
+
+                step: function (state, circle) {
+                    circle.path.setAttribute('stroke', state.color);
+                    circle.path.setAttribute('stroke-width', state.width);
+
+                    if (progress_status_helper.dl_error) {
+                        circle.path.setAttribute('stroke', '#FF0000');
+                        circle.path.setAttribute('stroke-width', state.width);
+
+                        circle.setText('!');
+                        return;
+                    }
+
+                    if (progress_status_helper.dl_success) {
+
+                        circle.path.setAttribute('stroke', '#006400');
+                        circle.path.setAttribute('stroke-width', state.width);
+
+                        circle.setText('✓');
+                        return;
+                    }
+
+                    var value = Math.round(circle.value() * 100);
+                    if (value === 0) {
+                        circle.setText("0%");
+                    } else {
+                        circle.setText(`${value}%`);
+                    }
+                }
+            });
+            else
+            var bar = new ProgressBar.Circle(loli, {
+                trailColor: ('#3d3d3d'),
+                color: ('#3d3d3d'),
+
+                strokeWidth: 10,
+                trailWidth: 10,
+                easing: 'easeInOut',
+                duration: 1400,
+                text: {
+                    autoStyleContainer: false
+                },
+                from: { color: '#757575', width: 10 },
+                to: { color: '#757575', width: 10 },
+
+                step: function (state, circle) {
+                    circle.path.setAttribute('stroke', state.color);
+                    circle.path.setAttribute('stroke-width', state.width);
+
+                    if (progress_status_helper.dl_error) {
+                        circle.path.setAttribute('stroke', '#FF0000');
+                        circle.path.setAttribute('stroke-width', state.width);
+
+                        circle.setText('!');
+                        return;
+                    }
+
+                    if (progress_status_helper.dl_success) {
+                        circle.path.setAttribute('stroke', '#a0c1a0');
+                        circle.path.setAttribute('stroke-width', state.width);
+                        
+                        circle.setText('✓');
+                        return;
+                    }
+
+                    var value = Math.round(circle.value() * 100);
+                    if (value === 0) {
+                        circle.setText("0%");
+                    } else {
+                        circle.setText(`${value}%`);
+                    }
+                }
+            });
+
+            if (!isDarkMode())
+            bar.text.style.color = 'black';
+            else
+            bar.text.style.color = 'white';            
+
+            bar.text.style.position = 'initial';
+            bar.text.style.textAlign = 'center';
+            bar.text.style.transform = '';
+            bar.text.style.marginTop = '-30px'
+            bar.text.style.fontFamily = '"Raleway", Helvetica, sans-serif';
+            bar.text.style.fontSize = '10px';
+
+            updateProgressBar(bar, id, progress_status_helper, undefined);
+
+            if (!progress_status_helper.dl_success && !progress_status_helper.dl_error && !progress_status_helper.dl_stop) {
+                var timer = setInterval(() => { updateProgressBar(bar, id, progress_status_helper, timer); }, 1000);
+                updating.push(timer);
+            }
+        }
+
+        document.addEventListener('contextmenu', function (e) {
+            e.preventDefault();
+        });
+
+        function startDownload(beatmapId, artist, author, title, status) {
+            var req = new XMLHttpRequest();
+
+            req.open('GET', `/downloader/start?id=${beatmapId}&artist=${artist}&author=${author}&title=${title}&status=${status}`, false);
+            req.send();
+
+            if (req.readyState == 4 && req.status == 200) {
+                var id = parseInt(req.responseText);
+                createDownload(beatmapId, id);
+                return id;
+            }
+        }
+
+        function isDarkMode() {
+            var y = document.head.getElementsByTagName("link")[0];
+            return !y.href.includes("/css/main.css");
+        }
+
+        function runBeatmap(beatmapId) {
+            var req = new XMLHttpRequest();
+
+            req.open('GET', `/downloader/run?id=${beatmapId}`, false);
+            req.send();
+        }
+
+        var searchRequest;
+
+        function search(query) {
+            updating.forEach(timer => clearInterval(timer));
+            document.getElementById("beatmaps").innerHTML = '<span style="color: gray">Loading...</span>';
+
+            if (searchRequest != undefined) {
+                searchRequest.abort();
+            }
+
+            searchRequest = new XMLHttpRequest();
+
+            searchRequest.onreadystatechange = function () {
+                if (this.readyState == 4 && this.status == 200) {
+                    var awaiter = setInterval(() => {
+                        if (working)
+                            return;
+                        else {
+                            updateList(JSON.parse(this.responseText));
+                            clearInterval(awaiter);
+                        }
+                    }, 10);
+                }
+            }
+
+            searchRequest.open("GET", `/downloader/search?query=${query}`, true);
+            document.getElementById('searchField').value = query;
+            searchRequest.send();
+        }
+
+        var working = false;
+
+        /*
+
+        AZZURRO: RANKATA
+        QUALIFICATA: VERDE
+        LOVVATA: ROSSA
+        E NON RANKATA: VAFFANCULOSA
+
+        */
+
+        function updateList(array) {
+            if (working) {
+                return;
+            }
+
+            working = true;
+
+            var beatmaps = document.getElementById("beatmaps");
+            beatmaps.innerHTML = '<span style="color: gray">Loading...</span>';
+
+            if (array.length == 0) {
+                var beatmaps = document.getElementById("beatmaps");
+                beatmaps.innerHTML = '<span style="color: gray">No beatmaps found.</span>';
+                working = false;
+                return;
+            }
+
+            darkMode = isDarkMode();
+
+            setTimeout(function () {
+                var beatmaps = document.getElementById("beatmaps");
+
+                beatmaps.innerHTML = '';
+
+                for (let i = array.length - 1; i > -1; i--) {
+                    const element = array[i];
+
+                    var parent = document.createElement('div');
+                    parent.id = element.id;
+                    parent.className = 'beatmap-panel';
+                    parent.style = 'margin-bottom: 10px';
+
+                    var shesAThot = document.createElement('div');
+                    shesAThot.className = 'beatmap-panel-thumbnail';
+
+                    var ifSheBreathes = element.status;
+
+                    if (ifSheBreathes == "1")
+                        shesAThot.innerHTML = ` <svg style="margin-top: 50px; margin-left: 125px; filter: drop-shadow( -5px 3px 3px rgba(0, 0, 0, .7));" height="25" width="25">
+                                                    <polygon points="25,25 25,0 0,25" style="fill:deepskyblue;" />
+                                                </svg>`;
+                    else if (ifSheBreathes == "4")
+                        shesAThot.innerHTML = ` <svg style="margin-top: 50px; margin-left: 125px; filter: drop-shadow( -5px 3px 3px rgba(0, 0, 0, .7));" height="25" width="25">
+                                                    <polygon points="25,25 25,0 0,25" style="fill:red;" />
+                                                </svg>`;
+                    else if (ifSheBreathes == "3" || ifSheBreathes == "2")
+                        shesAThot.innerHTML = ` <svg style="margin-top: 50px; margin-left: 125px; filter: drop-shadow( -5px 3px 3px rgba(0, 0, 0, .7));" height="25" width="25">
+                                                    <polygon points="25,25 25,0 0,25" style="fill:lime;" />
+                                                </svg>`;
+
+                    if (!darkMode) shesAThot.style = `background-image: url(https://assets.ppy.sh/beatmaps/${element.id}/covers/list@2x.jpg), url(/gifs/loading.gif)`;
+                    else shesAThot.style = `background-image: url(https://assets.ppy.sh/beatmaps/${element.id}/covers/list@2x.jpg), url(/gifs/loading_dark.gif)`;
+
+                    parent.appendChild(shesAThot);
+
+                    var information = document.createElement('div');
+                    information.className = 'beatmap-panel-information';
+
+                    parent.appendChild(information);
+
+                    var title = document.createElement('span');
+                    title.innerHTML = element.title;
+                    title.className = 'beatmap-panel-information-title';
+
+                    information.appendChild(title);
+
+                    var author = document.createElement('span');
+                    author.className = 'beatmap-panel-information-subtitle';
+                    author.innerHTML = element.artist + "&nbsp;";
+
+                    var creator = document.createElement('span');
+                    if (!darkMode) creator.style = 'font-size: 12px; color: #5f5f5f';
+                    else creator.style = 'font-size: 12px; color: white';
+                    creator.innerHTML = element.author;
+
+                    author.appendChild(creator);
+                    information.appendChild(author);
+
+                    {
+                        let dl_artist = element.artist;
+                        let dl_author = element.author;
+                        let dl_title = element.title;
+                        let dl_status = element.status;
+
+                        let dl = false; let dl_id = -2;
+                        information.onmouseup = function (ev) {
+                            if (ev.button == 2) {
+                                if (!dl)
+                                    dl_id = startDownload(this.parentNode.id, dl_artist, dl_author, dl_title, dl_status);
+                                else {
+                                    dl = stop(dl_id, element.id);
+                                    return;
+                                }
+
+                                dl = !dl;
+                            }
+                        };
+                    }
+
+                    var progressBar = document.createElement('div');
+                    progressBar.className = 'download-progressbar';
+                    progressBar.id = `${element.id}_progress`;
+
+                    parent.append(progressBar);
+                    beatmaps.appendChild(parent);
+
+                    if (element.dl_status != {} && element.dl_status != undefined) {
+                        createDownload(element.dl_status.Beatmapset_Id, element.dl_status.Id, progressBar);
+                    }
+                }
+                working = false;
+            }, 100);
+        }
+
+        function playSound(name) {
+            setTimeout(function () {
+                var request = new XMLHttpRequest();
+                request.open("GET", `/sounds/play?id=${name}`, true);
+                request.send();
+            }, 1);
+        }
+
+        var closing = false;
+
+        function closeFrame() {
+
+            if (closing) {
+                return;
+            }
+
+            playSound("Click");
+
+            var downloaderFrame = window.parent.document.getElementById("beatmapDownloaderFrame");
+
+            closing = true;
+
+            setTimeout(function () {
+                downloaderFrame.style.transition = "750ms ease-in-out";
+            }, 10);
+
+            setTimeout(() => {
+                downloaderFrame.style.left = "-120vw";
+                downloaderFrame.style.opacity = 0;
+            }, 20);
+
+            setTimeout(function () {
+                downloaderFrame.parentNode.removeChild(downloaderFrame);
+                closing = false;
+            }, 780);
+        }
+    </script>
+
+    <div style="position: absolute; padding: 30px; right:0; top: 0; z-index: 100;">
+        <button id="c_button" class="close-button" onmouseup="closeFrame()"></button>
+        <br>
+    </div>
+
+    <div id="settingsTitle" class="settings-title" style="opacity: 1;">Beatmap Downloader
+        <div style="display: inline-block; margin-left: -10px">
+        </div>
+    </div>
+
+    <div id="main-container" style="margin-top: -20px; overflow-y: auto; text-align: center; padding: 30px;">
+        <input onchange="search(this.value)" placeholder="Kuba Oms - My love" type="text" class="search-field-downloader" id="searchField"></input>
+        <div id="beatmaps" style="margin-top: 15px;"></div>
+    </div>
+</body>
+
+</html>

@@ -13,6 +13,11 @@
 		var mirror = false;
 		var previousMirror = undefined; 
 
+		function isDarkMode() {
+            var y = document.head.getElementsByTagName("link")[0];
+            return !y.href.includes("/css/main.css");
+        }
+
 		function rightButtonBeatmap(e) {
 			var mirror = e.parentElement.childNodes[2];
 
@@ -53,10 +58,10 @@
         var previous = undefined;
         function switchCategory(x) {
             if (previous != undefined) {
-                previous.style.color = "#a0a0a0ad";
+                previous.className = "category-switch";
             }
 
-            x.style.color = "rgb(28, 145, 223)";
+            x.className = "category-switch active";
             previous = x;
             
             document.getElementById("beatmaps").innerHTML = "";
@@ -130,6 +135,8 @@
                 return;
             }
 
+			darkMode = isDarkMode();
+
             setTimeout(function () {
                 var beatmaps = document.getElementById("beatmaps");
 
@@ -146,7 +153,9 @@
 
                     var image = document.createElement('div');
                     image.className = 'beatmap-panel-thumbnail';
-                    image.style = `background-image: url(/images/get_beatmap_image?id=${element.id}), url(/gifs/loading.gif)`;
+					
+					if (!darkMode) image.style = `background-image: url(/images/get_beatmap_image?id=${element.id}), url(/gifs/loading.gif)`;
+					else image.style = `background-image: url(/images/get_beatmap_image?id=${element.id}), url(/gifs/loading_dark.gif)`;
 
                     parent.appendChild(image);
 
@@ -166,7 +175,8 @@
                     author.innerHTML = element.artist + "&nbsp;";
 
                     var creator = document.createElement('span');
-                    creator.style = 'font-size: 12px; color: #5f5f5f';
+                    if (!darkMode) creator.style = 'font-size: 12px; color: #5f5f5f';
+                    else creator.style = 'font-size: 12px; color: white';
                     creator.innerHTML = element.creator;
 
                     author.appendChild(creator);
@@ -179,12 +189,9 @@
 
 					mirror.onmouseup = function() {
 						if (event.button == 0) {
-							var request = new XMLHttpRequest();
-							request.open("GET", `/utils/open_beatmapset_mirror?id=${this.parentNode.id}&b_id=${this.parentNode.getAttribute('b_id')}`, false);
-							request.send();
+                            window.parent.openDownloader(true, `https://osu.ppy.sh/s/${element.id}`);
                         }
 					};
-
 
 					mirror.append(mirrorText);
 
@@ -287,9 +294,9 @@
     margin-top: -10px;
     text-align: left;
     margin-left: 25px;">
-        <span id="ranked" onmouseup="switchCategory(this)" style="cursor: pointer; color: rgb(28, 145, 223); transition: 0.2s ease-out;">Ranked &nbsp;</span>
-        <span id="unranked" onmouseup="switchCategory(this)" style="cursor: pointer; color: #a0a0a0ad; transition: 0.2s ease-out;">Unranked &nbsp;</span>
-        <span id="loved" onmouseup="switchCategory(this)" style="cursor: pointer; color: #a0a0a0ad; transition: 0.2s ease-out;">Loved</span>
+        <span id="ranked" class="category-switch active" onmouseup="switchCategory(this)">Ranked &nbsp;</span>
+        <span id="unranked" class="category-switch" onmouseup="switchCategory(this)">Unranked &nbsp;</span>
+        <span id="loved" class="category-switch" onmouseup="switchCategory(this)">Loved</span>
     </p>
 
     <div id="beatmaps" style="margin-top: -5px; overflow-y: auto; text-align: center; padding: 30px;">

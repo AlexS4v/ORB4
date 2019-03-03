@@ -1,8 +1,8 @@
 body {
     overflow-x: hidden;
     overflow-y: hidden;
-    background-color: white;
-    color: black;
+    background-color: #202023;
+    color: white;
     font-size: 16px;
     text-align: center;
     user-select: none;
@@ -26,13 +26,40 @@ input[type=number]::-webkit-outer-spin-button {
     margin: 0;
 }
 
+.settings-link:link {
+	color: white;
+}
+
+.settings-link:visited {
+	color: white;
+}
+
+.settings-link:hover {
+	color: white;
+}
+
+.settings-link:active {
+	color: #7e96a7;
+}
+
+.settings-link {
+	font-size: 12px; 
+	-webkit-user-drag: none; 
+	display: block; 
+	text-align: left; 
+	margin-top: 9px; 
+	margin-left: 25px;
+}
+
 input[type=number]:disabled {
+	background-color: #202023;
     color: rgb(107, 107, 107);
-    border-bottom: 1px solid rgba(20, 95, 145, 0.445);
-    background-color: white;
+    border-bottom: 1px solid #435765;
 }
 
 input[type=number] {
+	color: white;
+	background-color: #202023;
     outline: 0;
     border-top: 0px;
     box-sizing: border-box;
@@ -40,8 +67,19 @@ input[type=number] {
     border-right: 0px;
     font-family: NotoRegular;
     width: 70px;
-    border-bottom: 1px solid rgb(28, 145, 223);
+    border-bottom: 1px solid #7e96a7;
     transition: 100ms ease-in-out;
+}
+
+.window {
+	position: fixed;
+	width: 40%;
+	height: 100%;
+	z-index: 90;
+	border: none;
+	box-shadow: -1px 6px 200px 2px #0e0e0e;
+	left: 120vw;
+	opacity: 0;
 }
 
 .beatmap-panel-information-title{
@@ -94,6 +132,7 @@ input[type=number] {
 }
 
 .beatmap-panel{
+	background-color: #2c3237;
     cursor: pointer;
     display: flex;
     overflow: hidden;
@@ -153,7 +192,7 @@ hr {
 
 .clear-button{
     border: 0px solid rgb(28, 145, 223);
-    background-color: rgb(28, 145, 223);
+    background-color: #7e96a7;
     -webkit-mask-size: 105%;
     -webkit-mask-image: url(svg/clear.svg);
     background-repeat: no-repeat;
@@ -170,7 +209,7 @@ hr {
 
 .save-button{
     border: 0px solid rgb(28, 145, 223);
-    background-color: rgb(28, 145, 223);
+    background-color: #7e96a7;
     -webkit-mask-size: 105%;
     -webkit-mask-image: url(svg/save.svg);
     background-repeat: no-repeat;
@@ -186,7 +225,7 @@ hr {
 
 .close-button{
     border: 0px solid rgb(28, 145, 223);
-    background-color: rgb(28, 145, 223);
+    background-color: #7e96a7;
     mask-image: url(svg/close-icon.svg);
     -webkit-mask-image: url(svg/close-icon.svg);
     background-repeat: no-repeat;
@@ -200,17 +239,12 @@ hr {
     cursor: pointer;
 }
 
-.search-field-downloader::placeholder{
-    font-family: NotoRegular;
-    color: gray;
-}
-
 .downloader-button {
     border: 0px solid rgb(28, 145, 223);
-    background-color: rgb(28, 145, 223);
+    background-color: #7e96a7;
     -webkit-mask-image: url(svg/downloader-icon.svg);
 	-webkit-mask-repeat: no-repeat;
-	-webkit-mask-size: contain;
+    -webkit-mask-size: contain;
     background-repeat: no-repeat;
     background-size: contain;
     text-align: center;
@@ -220,23 +254,13 @@ hr {
     height: 37px;
     outline: none;
     cursor: pointer;
-    transform: rotate(0deg);
+    transform: translateY(0px);
     transition: 0.5s ease-in-out;
-}
-
-.search-field-downloader {
-	padding: 10px;
-    font-family: NotoRegular;
-    border: solid rgb(28, 145, 223) 2px;
-    border-radius: 19px;
-    color: black;
-    outline: 0;
-    width: 90%;
 }
 
 .downloader-square-bracket-button {
 	border: 0px solid rgb(28, 145, 223);
-    background-color: rgb(28, 145, 223);
+    background-color: #7e96a7;
     -webkit-mask-image: url(svg/downloader-bracket-icon.svg);
 	-webkit-mask-repeat: no-repeat;
 	-webkit-mask-size: contain;
@@ -253,6 +277,22 @@ hr {
     transition: 0.5s ease-in-out;
 }
 
+.search-field-downloader::placeholder{
+    font-family: NotoRegular;
+    color: gray;
+}
+
+.search-field-downloader {
+	background-color: #202023;
+    padding: 10px;
+    font-family: NotoRegular;
+    border: solid #7e96a7 2px;
+    border-radius: 19px;
+    color: white;
+    outline: 0;
+    width: 90%;
+}
+
 .downloader-button:hover {
     transform: translateY(3px);
     transition: 0.25s ease-in-out;
@@ -260,7 +300,7 @@ hr {
 
 .settings-button {
     border: 0px solid rgb(28, 145, 223);
-    background-color: rgb(28, 145, 223);
+    background-color: #7e96a7;
     -webkit-mask-image: url(svg/settings-icon.svg);
     background-repeat: no-repeat;
     background-size: contain;
@@ -275,10 +315,10 @@ hr {
     transition: 0.5s ease-in-out;
 }
 
-    .settings-button:hover {
-        transform: rotate(90deg);
-        transition: 0.5s ease-in-out;
-    }
+.settings-button:hover {
+	transform: rotate(90deg);
+	transition: 0.5s ease-in-out;
+}
 
 
 .main-bar.title {
@@ -291,38 +331,18 @@ hr {
     font-family: NotoLight;
 }
 
-.window {
-	position: fixed;
-	width: 40%;
-	height: 100%;
-	zIndex: 220;
-	border: none;
-	box-shadow: -1px 6px 200px 2px #888888;
-	left: 120vw;
-	opacity: 0;
-}
-
 .settings-title {
     text-align: left;
-    color: rgb(28, 145, 223);
+    color: #7e96a7;
     padding: 20px 20px 20px 25px;
     font-size: 35px;
     font-family: NotoLight;
     opacity: 0;
 }
 
-.settings-link {
-	font-size: 12px; 
-	-webkit-user-drag: none; 
-	display: block; 
-	text-align: left; 
-	margin-top: 9px; 
-	margin-left: 25px;
-}
-
 .settings-group {
     text-align: left;
-    color: rgb(28, 145, 223);
+    color: #7e96a7;
     padding-left: 25px;
     font-size: 20px;
     font-family: NotoRegular;
@@ -331,7 +351,7 @@ hr {
 }
 
 .setting {
-    color: black;
+    color: white;
     font-size: 16px;
     font-family: NotoRegular;
     padding-left: 25px;
@@ -339,27 +359,29 @@ hr {
 }
 
 .setting input[type=password]:focus {
-        border-bottom: 1px solid rgb(20, 98, 150);
+        border-bottom: 1px solid #7e96a7;
     }
 
     .setting input[type=password] {
+		color: white;
         outline: 0;
         border-top: 0px;
         box-sizing: border-box;
+		background-color: #202023;
         border-left: 0px;
         border-right: 0px;
         font-family: NotoRegular;
-        border-bottom: 1px solid rgb(28, 145, 223);
+        border-bottom: 1px solid #435765;
         transition: 100ms ease-in-out;
     }
 
 .circle-button {
     font-family: NotoRegular;
     font-size: 27.5px;
-    background-color: white;
-    border: 3px solid rgb(28, 145, 223);
+    background-color: #202023;
+    border: 3px solid #435765;
     border-radius: 50%;
-    color: rgb(28, 145, 223);
+    color: #7e96a7;
     padding: 20px;
     text-align: center;
     text-decoration: none;
@@ -373,21 +395,22 @@ hr {
 }
 
 .circle-button.animation {
-    border: 3px solid white;
-    border-top: 3px solid rgb(28, 145, 223);
-    border-right: 3px solid rgb(28, 145, 223);
+    border: 3px solid #202023;
+    border-top: 3px solid #435765;
+    border-right: 3px solid #435765;
+	z-index: 10;
     width: 235px;
     height: 235px;
     animation: spin 2s cubic-bezier(.68,-0.55,.27,1.55) infinite;
 }
 
 .circle-button-text.animation {
-	color: rgb(28, 145, 223);
+	color: #7e96a7;
 	z-index: 50;
 }
 
 .circle-button-text {
-	color: white;
+	color: #202023;
 	z-index: -100;
     position: fixed;
     font-family: NotoRegular;
@@ -463,9 +486,9 @@ hr {
     height: 16px;
     padding: 0;
     line-height: 16px;
-    border: 2px solid #1C91DF;
+    border: 2px solid #435765;
     border-radius: 16px;
-    background-color: #FFFFFF;
+    background-color: #202023;
     transition: background-color 0.1s ease-in;
 }
 
@@ -474,22 +497,22 @@ hr {
         display: block;
         width: 16px;
         margin: 0px;
-        background: #FFFFFF;
+        background: #202023;
         position: absolute;
         top: 0;
         bottom: 0;
         right: 23px;
-        border: 2px solid #1C91DF;
+        border: 2px solid #435765;
         border-radius: 16px;
         transition: all 0.1s ease-in 0s;
     }
 
 .onoffswitch-checkbox:checked + .onoffswitch-label {
-    background-color: #1C91DF;
+    background-color: #435765;
 }
 
     .onoffswitch-checkbox:checked + .onoffswitch-label, .onoffswitch-checkbox:checked + .onoffswitch-label:before {
-        border-color: #1C91DF;
+        border-color: #435765;
     }
 
         .onoffswitch-checkbox:checked + .onoffswitch-label:before {
@@ -503,7 +526,7 @@ hr {
 }
 
 .category-switch.active {
-	color: rgb(28, 145, 223);
+	color: #7e96a7;
 }
 
 .no-transition{

@@ -13,7 +13,7 @@ namespace ORB4
         /// </summary>
         [STAThread]
         static void Main()
-       {
+        {
             
 
             Application.EnableVisualStyles();
@@ -26,7 +26,6 @@ namespace ORB4
 
             Logger.MainLogger = new Logger();
             Logger.MainLogger.Start();
-            
 
             Logger.MainLogger.Log(Logger.LogTypes.Info, "The program is running!");
 

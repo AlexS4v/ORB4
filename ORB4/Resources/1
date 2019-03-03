@@ -80,6 +80,13 @@
             if (type == "checkbox")
                 playSound("Switch");
 
+			if (id == "night_mode") {
+				if (element.checked)
+					window.parent.darkModeAll();
+				else
+					window.parent.lightModeAll();
+			}
+
             sendJson({ "setting_id": id, "type": type, "value": element.value, "checked": element.checked });
             updateSettings();
         }
@@ -97,12 +104,18 @@
             </div> &nbsp;&nbsp;&nbsp; Sound effects
         </div>
     
+	<div class="setting" style="margin-top:2px" >
+            <div class="onoffswitch">
+                <input onchange="onChange(this)" type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="night_mode">
+                <label class="onoffswitch-label" for="night_mode"></label>
+            </div> &nbsp;&nbsp;&nbsp; Night mode
+        </div>
+
     <div class="setting" style="margin-top:15px">
         API key &nbsp; &nbsp;
         <input onchange="onChange(this)" id="api_key" type="password" style="width: 100px;">
     </div>
-    <a style="font-size: 12px; -webkit-user-drag: none; display: block; text-align: left; margin-top: 9px; margin-left: 25px"
-        onclick="cSharpTools.openUrl('https://osu.ppy.sh/p/api');" href="#">Get your API key here.</a>
+    <a class="settings-link" onclick="cSharpTools.openUrl('https://osu.ppy.sh/p/api');" href="#">Get your API key here.</a>
 
     <div class="setting" style="margin-top:15px">
         <div class="onoffswitch">
@@ -128,6 +141,17 @@
         <div class="tooltip">
             Old beatmaps
             <span class="tooltiptext">Before 2011</span>
+        </div>
+    </div>
+
+    <div class="setting" style="margin-top:2px">
+        <div class="onoffswitch">
+            <input onchange="onChange(this)" type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="new_beatmaps">
+            <label class="onoffswitch-label" for="new_beatmaps"></label>
+        </div> &nbsp;&nbsp;&nbsp;
+        <div class="tooltip">
+            New beatmaps
+            <span class="tooltiptext">After 2011</span>
         </div>
     </div>
 
@@ -410,7 +434,9 @@
         </div> &nbsp;&nbsp;&nbsp; Other
     </div>
 
+    <!--
 	<div class="settings-group" style="margin-top: 30px; font-family: NotoRegular; font-size: 18px">Mirrors</div>
+
 
 	<div class="setting" style="margin-top:15px">
         <div class="onoffswitch">
@@ -441,7 +467,8 @@
 				onChange(bloodcatMirror);
 			}
 		}
-	</script>
+    </script>
+    -->
 	
 	<div class="settings-group" style="margin-top: 30px; font-family: NotoRegular; font-size: 18px">Server</div>
 
@@ -452,7 +479,7 @@
         </div> &nbsp;&nbsp;&nbsp; Ripple
     </div>
 
-    <div style="margin-top:20px;padding-left: 25px; text-align: left;">Developed by Zusupe Team <br><br> This program is not affiliated with the game osu! <br><br> All credits to Dean Herbert.</div>
+    <div style="margin-top:20px;padding-left: 25px; text-align: left;">Developed by Zusupe Team <br><br> This program is not affiliated with the game osu! <br><br> All credits to Dean Herbert.<br><br>The mirror used for the beatmap downloader is Bloodcat.</div>
 	<div style="width: 100%; height: 50px;"></div>
 
 	</div>

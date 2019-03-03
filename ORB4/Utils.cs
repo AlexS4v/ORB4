@@ -6,11 +6,19 @@ using System.Threading.Tasks;
 using System.IO;
 using System.Net.Sockets;
 using System.Net;
+using Microsoft.Win32;
 
 namespace ORB4
 {
     class Utils
     {
+        public static string GetOsuPath()
+        {
+            RegistryKey key = Registry.ClassesRoot.OpenSubKey(@"\osu!\shell\open\command");
+            var path = (string)key.GetValue(string.Empty);
+            var splitted = path.Split('"');
+            return System.IO.Path.GetDirectoryName(splitted[1]);
+        }
 
         public static async void PlayWavAsync(byte[] bytes)
         {

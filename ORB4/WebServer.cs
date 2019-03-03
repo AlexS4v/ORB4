@@ -21,6 +21,7 @@ namespace ORB4
         private System.Threading.SemaphoreSlim _thumbnailsSemaphore;
 
         public Engine Engine;
+        public BeatmapDownloader BeatmapDownloader;
 
         class HtmlResource
         {
@@ -43,6 +44,7 @@ namespace ORB4
             _thumbnailsSemaphore = new System.Threading.SemaphoreSlim(1, 1);
             _listener = new HttpListener();
             Engine = new Engine() { ApiKey = "", LocalSettings = ORB4.Engine.Settings.Load() };
+            BeatmapDownloader = new BeatmapDownloader(ref Engine);
 
             Token = Guid.NewGuid().ToByteArray();
 
@@ -57,6 +59,8 @@ namespace ORB4
                 { "/html/mainwindow.html", new HtmlResource(0, "text/html") },
                 { "/html/settings.html", new HtmlResource(1, "text/html") },
                 { "/css/main.css", new HtmlResource(2, "text/css") },
+                { "/css/night.css", new HtmlResource(17, "text/css") },
+                { "/css/default.css", new HtmlResource(18, "text/css") },
                 { "/css/svg/settings-icon.svg", new HtmlResource(3, "image/svg+xml") },
                 { "/css/fonts/NotoSans-Regular.ttf", new HtmlResource(4, "application/font") },
                 { "/css/fonts/NotoSans-Light.ttf", new HtmlResource(5, "application/font") },
@@ -65,8 +69,15 @@ namespace ORB4
                 { "/css/svg/close-icon.svg", new HtmlResource(11, "image/svg+xml") },
                 { "/jquery", new HtmlResource(12, "application/javascript") },
                 { "/gifs/loading.gif", new HtmlResource(14, "image/gif") },
+                { "/gifs/loading_dark.gif", new HtmlResource(19, "image/gif") },
                 { "/css/svg/save.svg", new HtmlResource(15, "image/svg+xml") },
-                { "/css/svg/clear.svg", new HtmlResource(16, "image/svg+xml") }
+                { "/css/svg/clear.svg", new HtmlResource(16, "image/svg+xml") },
+                { "/html/beatmap_downloader.html", new HtmlResource(20, "text/html") },
+                { "/html/search_dl.html", new HtmlResource(21, "text/html") },
+                { "/css/svg/downloader-icon.svg", new HtmlResource(22, "image/svg+xml") },
+                { "/css/svg/downloader-bracket-icon.svg", new HtmlResource(23, "image/svg+xml") },
+                { "/progressbar.js", new HtmlResource(24, "application/javascript") },
+                { "/html/list_dl.html", new HtmlResource(25, "text/html") },
             };
         }
 
@@ -219,10 +230,20 @@ namespace ORB4
                             context.Response.StatusCode = 200;
                             context.Response.ContentType = "text/plain";
 
-                            bytes = Encoding.UTF8.GetBytes(Engine.LocalSettings.Mirror.ToString().ToUpper());
+                            bytes = Encoding.UTF8.GetBytes("MIRROR");
 
                             await context.Response.OutputStream.WriteAsync(bytes, 0, bytes.Length);
 
+                            context.Response.OutputStream.Close();
+                            return;
+                        case "/downloader/dls":
+                            bytes = Encoding.UTF8.GetBytes(
+                                await BeatmapDownloader.DownloadStatusAsync());
+
+                            context.Response.StatusCode = 200;
+                            context.Response.ContentType = "application/json";
+
+                            await context.Response.OutputStream.WriteAsync(bytes, 0, bytes.Length);
                             context.Response.OutputStream.Close();
                             return;
                         default:
@@ -390,6 +411,9 @@ namespace ORB4
                                         case "Switch":
                                             Utils.PlayWavAsync(Properties.Resources.Switch);
                                             break;
+                                        case "Downloaded":
+                                            Utils.PlayWavAsync(Properties.Resources.Downloaded);
+                                            break;
                                         default:
                                             break;
                                     }
@@ -397,6 +421,98 @@ namespace ORB4
 
                                 await context.Response.OutputStream.WriteAsync(new byte[] { }, 0, 0);
                                 context.Response.OutputStream.Close();
+                            }
+                            else if (context.Request.RawUrl.Contains("/downloader/search"))
+                            {
+                                string query = context.Request.QueryString["query"];
+                                bytes = Encoding.UTF8.GetBytes(
+                                    await BeatmapDownloader.Search(query));
+
+                                context.Response.StatusCode = 200;
+                                context.Response.ContentType = "application/json";
+
+                                await context.Response.OutputStream.WriteAsync(bytes, 0, bytes.Length);
+                                context.Response.OutputStream.Close();
+                                return;
+                            }
+                            else if (context.Request.RawUrl.Contains("/downloader/start"))
+                            {
+                                string query0 = context.Request.QueryString["id"];
+                                string query1 = context.Request.QueryString["author"];
+                                string query2 = context.Request.QueryString["artist"];
+                                string query3 = context.Request.QueryString["title"];
+                                string query4 = context.Request.QueryString["status"];
+                                bytes = Encoding.UTF8.GetBytes(
+                                    (await BeatmapDownloader
+                                    .RegisterDownload (int.Parse(query0), int.Parse(query4), query1, query2, query3))
+                                    .ToString());
+
+                                context.Response.StatusCode = 200;
+                                context.Response.ContentType = "text/plain";
+
+                                await context.Response.OutputStream.WriteAsync(bytes, 0, bytes.Length);
+                                context.Response.OutputStream.Close();
+                                return;
+                            }
+                            else if (context.Request.RawUrl.Contains("/downloader/stop"))
+                            {
+                                string query = context.Request.QueryString["id"];
+                                int status = await BeatmapDownloader.Stop(int.Parse(query));
+
+                                context.Response.StatusCode = status;
+                                context.Response.ContentType = "text/plain";
+
+                                await context.Response.OutputStream.WriteAsync(new byte[] { }, 0, 0);
+                                context.Response.OutputStream.Close();
+                                return;
+                            }
+                            else if (context.Request.RawUrl.Contains("/downloader/run"))
+                            {
+                                string query = context.Request.QueryString["id"];
+                                int status = await BeatmapDownloader.RunBeatmap(int.Parse(query));
+
+                                context.Response.StatusCode = status;
+                                context.Response.ContentType = "text/plain";
+
+                                await context.Response.OutputStream.WriteAsync(new byte[] { }, 0, 0);
+                                context.Response.OutputStream.Close();
+                                return;
+                            }
+                            else if (context.Request.RawUrl.Contains("/downloader/dls"))
+                            {
+                                try
+                                {
+                                    string query = context.Request.QueryString["id"];
+                                    bytes = Encoding.UTF8.GetBytes(
+                                        await BeatmapDownloader.DownloadStatusAsync(int.Parse(query)));
+                                } catch(Exception e)
+                                {
+                                    bytes = Encoding.UTF8.GetBytes("ERROR");
+                                } 
+                                context.Response.StatusCode = 200;
+                                context.Response.ContentType = "application/json";
+
+                                await context.Response.OutputStream.WriteAsync(bytes, 0, bytes.Length);
+                                context.Response.OutputStream.Close();
+                                return;
+                            }
+                            else if (context.Request.RawUrl.Contains("/ui_mode/"))
+                            {
+                                string mode = string.Empty;
+
+                                if (Engine.LocalSettings.NightMode)
+                                    mode = "../css/night.css";
+                                else
+                                    mode = "../css/main.css";
+
+                                context.Response.StatusCode = 200;
+                                context.Response.ContentType = "text/plain";
+
+                                bytes = Encoding.UTF8.GetBytes(mode);
+
+                                await context.Response.OutputStream.WriteAsync(bytes, 0, bytes.Length);
+                                context.Response.OutputStream.Close();
+                                return;
                             }
 
                             await BadRequest(context);
@@ -416,7 +532,7 @@ namespace ORB4
                 new JObject() { { "id", "auto_open" }, { "checked", Engine.LocalSettings.AutoOpen.ToString().ToLower()  } },
                 new JObject() { { "id", "api_key" }, { "value", (Engine.ApiKey != string.Empty) ? Engine.GetAPIKeySha512() : string.Empty } },
                 new JObject() { { "id", "open_in_game" }, { "checked", Engine.LocalSettings.OpenInGame.ToString().ToLower()  } },
-                new JObject() { { "id", "old_beatmaps" }, { "checked", Engine.LocalSettings.OldBeatmaps.ToString().ToLower()  } },
+                new JObject() { { "id", "old_beatmaps" }, { "checked", Engine.LocalSettings.OldBeatmapsB.ToString().ToLower()  } },
                 new JObject() { { "id", "max_stars"}, { "value", Engine.LocalSettings.MaxStars.ToString(System.Globalization.CultureInfo.GetCultureInfo("en-US")) } },
                 new JObject() { { "id", "min_stars"}, { "value", Engine.LocalSettings.MinStars.ToString(System.Globalization.CultureInfo.GetCultureInfo("en-US")) } },
                 new JObject() { { "id", "max_length"}, { "value", Engine.LocalSettings.MaxLength.ToString(System.Globalization.CultureInfo.GetCultureInfo("en-US")) } },
@@ -429,7 +545,9 @@ namespace ORB4
                 new JObject() { { "id", "sound_effects"}, { "checked", Engine.LocalSettings.SoundEffects.ToString().ToLower() } },
                 new JObject() { { "id", "hexide_mirror"}, { "checked", Engine.LocalSettings.Mirror == Engine.DownloadMirrors.Hexide ? "true" : "false" } },
                 new JObject() { { "id", "bloodcat_mirror"}, { "checked", Engine.LocalSettings.Mirror == Engine.DownloadMirrors.Bloodcat ? "true" : "false" } },
-                new JObject() { { "id", "ripple" }, { "checked", Engine.LocalSettings.Ripple.ToString().ToLower() } }
+                new JObject() { { "id", "ripple" }, { "checked", Engine.LocalSettings.Ripple.ToString().ToLower() } },
+                new JObject() { { "id", "night_mode" }, { "checked", Engine.LocalSettings.NightMode.ToString().ToLower() } },
+                new JObject() { { "id", "new_beatmaps" }, { "checked", Engine.LocalSettings.NewBeatmapsB.ToString().ToLower()  } },
             };
 
             var modes = Enum.GetValues(typeof(Engine.Modes)).Cast<Engine.Modes>().ToArray();
@@ -519,7 +637,10 @@ namespace ORB4
                     Engine.LocalSettings.OpenInGame = bool.Parse(check);
                     break;
                 case "old_beatmaps":
-                    Engine.LocalSettings.OldBeatmaps = bool.Parse(check);
+                    Engine.LocalSettings.OldBeatmapsB = bool.Parse(check);
+                    break;
+                case "new_beatmaps":
+                    Engine.LocalSettings.NewBeatmapsB = bool.Parse(check);
                     break;
                 case "max_stars":
                     try
@@ -589,6 +710,9 @@ namespace ORB4
                     break;
                 case "ripple":
                     Engine.LocalSettings.Ripple = bool.Parse(check);
+                    break;
+                case "night_mode":
+                    Engine.LocalSettings.NightMode = bool.Parse(check);
                     break;
                 default:
                     break;

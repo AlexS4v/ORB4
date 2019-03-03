@@ -1,4 +1,6 @@
-﻿namespace ORB4
+﻿using System.Windows.Forms;
+
+namespace ORB4
 {
     partial class MainWindow
     {

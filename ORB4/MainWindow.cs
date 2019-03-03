@@ -39,6 +39,24 @@ namespace ORB4
             _engine = engine;
         }
 
+        public void Initialize()
+        {
+            if (!_engine.LocalSettings.NightMode)
+            {
+                _mainWindow.Invoke(new Action(() => { _mainWindow._browser.Dock = DockStyle.Fill; }));
+                System.Threading.Thread.Sleep(200);
+                _mainWindow.Invoke(new Action(() => { _mainWindow.ResumeLayout(); _mainWindow._browser.Refresh(); }));
+                System.Threading.Thread.Sleep(200);
+                _mainWindow.Invoke(new Action(() => { _mainWindow._browser.BringToFront(); }));
+            } else
+            {
+                System.Threading.Thread.Sleep(400);
+                _mainWindow.Invoke(new Action(() => { _mainWindow._browser.Dock = DockStyle.Fill; }));
+                _mainWindow.Invoke(new Action(() => { _mainWindow.ResumeLayout(); _mainWindow._browser.Refresh(); }));
+
+            }
+        }
+
         public string GetVersion()
         {
             return Engine.Version;
@@ -52,6 +70,11 @@ namespace ORB4
         public void FixZoom()
         {
             _mainWindow.FixZoom();
+        }
+
+        public void CalmDownMessageBox()
+        {
+            System.Windows.Forms.MessageBox.Show($"Yo, chill! Are you trying to kill {_engine.LocalSettings.Mirror.ToString()}? You can only queue 10 beatmaps a time.", "Alert", System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Exclamation);
         }
 
         public void RegisterApiKey(string apikey)
@@ -71,7 +94,7 @@ namespace ORB4
     public partial class MainWindow : Form
     {
         CefSettings _cefSettings;
-        ChromiumWebBrowser _browser;
+        internal ChromiumWebBrowser _browser;
         WebServer _server;
 
         public static MainWindow Current; 
@@ -86,7 +109,6 @@ namespace ORB4
 
             string AppData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
 
-
             _cefSettings = new CefSettings() { CachePath = null };
 
             _cefSettings.CefCommandLineArgs.Add("--disable-cache", "1");
@@ -96,6 +118,8 @@ namespace ORB4
 
             if (System.IO.File.Exists($"{AppData}\\ORB\\cef.log"))
                 System.IO.File.Delete($"{AppData}\\ORB\\cef.log");
+            
+
 
             _cefSettings.LogFile = $"{AppData}\\ORB\\cef.log";
             _cefSettings.LogSeverity = LogSeverity.Error | LogSeverity.Info | LogSeverity.Warning;
@@ -128,6 +152,8 @@ namespace ORB4
             Logger.MainLogger.Log(Logger.LogTypes.Info, "BrowserObject.Create -> Success");
             _browser.RegisterJsObject("cSharpTools", new CSharpTools(ref _server.Engine, ref Current));
             Logger.MainLogger.Log(Logger.LogTypes.Info, "BrowserObject.RegisterJS -> Success");
+            _browser.BackColor = Color.Black;
+            this.BackColor = Color.Black;
 
             manager.SetCookie(_server.Url, new CefSharp.Cookie()
             {
@@ -137,10 +163,35 @@ namespace ORB4
             });
             
             Logger.MainLogger.Log(Logger.LogTypes.Info, "CookieManager.SetCookie -> Success");
-            
+            _browser.Dock = DockStyle.None;
+
             _browser.IsBrowserInitializedChanged += InitializeStatus;
             this.Controls.Add(_browser);
-            
+            _browser.Paint += BrowserPaint;
+
+            Color panelColor = _server.Engine.LocalSettings.NightMode ?
+                Color.FromArgb(32, 31, 36) : Color.White;
+
+            if (!_server.Engine.LocalSettings.NightMode)
+            {
+
+                _loadingPanel = new Panel
+                {
+                    Dock = DockStyle.Fill,
+                    BackColor = panelColor
+                };
+
+                this.Controls.Add(_loadingPanel);
+                _loadingPanel.BringToFront();
+            }
+
+            BackColor = Color.Black ;
+        }
+
+        internal Panel _loadingPanel;
+
+        private void BrowserPaint(object sender, PaintEventArgs e)
+        {
         }
 
         bool _initialized = false;
@@ -194,7 +245,7 @@ namespace ORB4
 
         private void MainWindow_Load(object sender, EventArgs e)
         {
-
+            this.SuspendLayout();
         }
     }
 }

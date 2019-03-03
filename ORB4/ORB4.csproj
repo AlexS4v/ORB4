@@ -75,11 +75,21 @@
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="JsonFx, Version=2.0.1209.2802, Culture=neutral, PublicKeyToken=315052dd637f8a52, processorArchitecture=MSIL">
+      <HintPath>..\packages\JsonFx.2.0.1209.2802\lib\net40\JsonFx.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.VisualBasic" />
     <Reference Include="NAudio, Version=1.8.5.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\NAudio.1.8.5\lib\net35\NAudio.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.12.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
+    <Reference Include="osu-database-reader, Version=2.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\HoLLy.osu.DatabaseReader.2.1.0\lib\net40\osu-database-reader.dll</HintPath>
+    </Reference>
+    <Reference Include="osu.Shared, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\osu.Shared.1.0.2\lib\net20\osu.Shared.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -94,6 +104,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BeatmapDownloader.cs" />
     <Compile Include="Engine.cs" />
     <Compile Include="ExportFormat.cs" />
     <Compile Include="ExportFormats\HtmlFile.cs" />
@@ -142,7 +153,16 @@
     <None Include="Resources\14" />
     <None Include="Resources\15" />
     <None Include="Resources\16" />
+    <None Include="Resources\17" />
+    <None Include="Resources\18" />
+    <None Include="Resources\19" />
     <None Include="Resources\2" />
+    <None Include="Resources\20" />
+    <None Include="Resources\21" />
+    <None Include="Resources\22" />
+    <None Include="Resources\23" />
+    <None Include="Resources\24" />
+    <None Include="Resources\25" />
     <None Include="Resources\3" />
     <None Include="Resources\4" />
     <None Include="Resources\5" />
@@ -172,6 +192,7 @@
     <None Include="orb.ico" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Resources\Downloaded" />
     <None Include="Resources\Main.ico" />
   </ItemGroup>
   <ItemGroup>

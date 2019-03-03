@@ -1,0 +1,2 @@
+<input onchange="search(this.value)" placeholder="Kuba Oms - My love" type="text" class="search-field-downloader" id="searchField"></input>
+<div id="beatmaps" style="margin-top: 15px;"></div>

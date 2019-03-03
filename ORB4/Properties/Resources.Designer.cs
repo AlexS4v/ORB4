@@ -153,9 +153,99 @@ namespace ORB4.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
+        internal static byte[] _17 {
+            get {
+                object obj = ResourceManager.GetObject("_17", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] _18 {
+            get {
+                object obj = ResourceManager.GetObject("_18", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] _19 {
+            get {
+                object obj = ResourceManager.GetObject("_19", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
         internal static byte[] _2 {
             get {
                 object obj = ResourceManager.GetObject("_2", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] _20 {
+            get {
+                object obj = ResourceManager.GetObject("_20", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] _21 {
+            get {
+                object obj = ResourceManager.GetObject("_21", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] _22 {
+            get {
+                object obj = ResourceManager.GetObject("_22", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] _23 {
+            get {
+                object obj = ResourceManager.GetObject("_23", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] _24 {
+            get {
+                object obj = ResourceManager.GetObject("_24", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] _25 {
+            get {
+                object obj = ResourceManager.GetObject("_25", resourceCulture);
                 return ((byte[])(obj));
             }
         }
@@ -206,6 +296,16 @@ namespace ORB4.Properties {
         internal static byte[] Click {
             get {
                 object obj = ResourceManager.GetObject("Click", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] Downloaded {
+            get {
+                object obj = ResourceManager.GetObject("Downloaded", resourceCulture);
                 return ((byte[])(obj));
             }
         }
