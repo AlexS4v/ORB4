@@ -26,6 +26,50 @@ namespace ORB4
         private Semaphore _getSemaphore;
         private Semaphore _downloadsSemaphore;
 
+        public async Task<byte[]> GetThumbnailNoDisk(int id)
+        {
+            Download download = null;
+
+            await Task.Delay(100);
+
+            _downloadsSemaphore.WaitOne();
+            {
+                if (_downloads.Any(x => x.Id == id))
+                {
+                    download = _downloads.First(x => x.Id == id);
+                }
+            }
+            _downloadsSemaphore.Release();
+
+            if (download == null)
+            {
+                byte[] data = await DownloadThumbnailNoDiskAsync(id);
+                if (data == null) return Properties.Resources._13;
+                else return data;
+            }
+            else
+            {
+                if (download.Status == 0)
+                {
+                    do
+                    {
+                        _downloadsSemaphore.WaitOne();
+                        {
+                            download = _downloads.First(x => x.Id == id);
+                        }
+                        _downloadsSemaphore.Release();
+                        await Task.Delay(50);
+                    } while (download.Status == 0);
+                }
+                else if (download.Status == -1)
+                {
+                    return Properties.Resources._13;
+                }
+
+                return ReadFromStream(download.Pos, download.Length);
+            }
+        }
+
         public async Task<byte[]> GetThumbnail(int id)
         {
             Download download = null;
@@ -70,6 +114,7 @@ namespace ORB4
 
         private byte[] ReadFromStream(long pos, int length)
         {
+            _getSemaphore.WaitOne();
             byte[] buffer = new byte[length];
             _writeSemaphore.WaitOne();
             {
@@ -82,6 +127,21 @@ namespace ORB4
             _writeSemaphore.Release();
 
             return buffer;
+        }
+
+        private void CopyStream(Stream input, Stream output)
+        {
+            _writeSemaphore.WaitOne();
+            {
+                byte[] buffer = new byte[8 * 1024];
+                int len;
+
+                while ((len = input.Read(buffer, 0, buffer.Length)) > 0)
+                {
+                    output.Write(buffer, 0, len);
+                }
+            }
+            _writeSemaphore.Release();
         }
 
         private void CopyStream(Stream input)
@@ -97,6 +157,31 @@ namespace ORB4
                 }
             }
             _writeSemaphore.Release();
+        }
+
+        public async Task<byte[]> DownloadThumbnailNoDiskAsync(int id)
+        {
+            using (MemoryStream ms = new MemoryStream())
+            {
+                using (HttpClient client = new HttpClient())
+                {
+                    HttpResponseMessage message = await client.GetAsync($"https://assets.ppy.sh/beatmaps/{id}/covers/list@2x.jpg");
+
+                    if (message.IsSuccessStatusCode)
+                    {
+                        using (Stream netStream = await message.Content.ReadAsStreamAsync())
+                        {
+                            CopyStream(netStream, ms);
+
+                            return ms.ToArray();
+                        }
+                    }
+                    else
+                    {
+                        return null;
+                    }
+                }
+            }
         }
 
         public async Task DownloadThumbnailAsync(int id)

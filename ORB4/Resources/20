@@ -13,7 +13,131 @@
     <script>
         var updating = [];
 
-        function updateProgressBar(bar, id, progress_status_helper, timer) {
+        window.onscroll = function (ev) {
+            if (Math.round(window.innerHeight + window.scrollY + 1) >= document.body.scrollHeight) {
+                if (searchRequest != undefined) {
+                    searchRequest.abort();
+                }
+
+                searchRequest = new XMLHttpRequest();
+
+                searchRequest.onreadystatechange = function () {
+                    if (this.readyState == 4 && this.status == 200) {
+                        var awaiter = setInterval(() => {
+                            if (working)
+                                return;
+                            else {
+                                array = JSON.parse(this.responseText);
+                                searchUpdaters.forEach(timer => clearInterval(timer));
+                                searchUpdaters = [];
+
+                                var beatmaps = document.getElementById("beatmaps");
+
+                                for (let i = array.length - 1; i > -1; i--) {
+                                    const element = array[i];
+
+                                    var parent = document.createElement('div');
+                                    parent.id = element.id;
+                                    parent.className = 'beatmap-panel';
+                                    parent.style = 'margin-bottom: 10px';
+
+                                    var thumbnail = document.createElement('div');
+                                    thumbnail.className = 'beatmap-panel-thumbnail';
+
+                                    var div_status = element.status;
+
+                                    if (div_status == "1")
+                                        thumbnail.innerHTML = ` <svg style="margin-top: 50px; margin-left: 125px; filter: drop-shadow( -5px 3px 3px rgba(0, 0, 0, .7));" height="25" width="25">
+                                                    <polygon points="25,25 25,0 0,25" style="fill:deepskyblue;" />
+                                                </svg>`;
+                                    else if (div_status == "4")
+                                        thumbnail.innerHTML = ` <svg style="margin-top: 50px; margin-left: 125px; filter: drop-shadow( -5px 3px 3px rgba(0, 0, 0, .7));" height="25" width="25">
+                                                    <polygon points="25,25 25,0 0,25" style="fill:red;" />
+                                                </svg>`;
+                                    else if (div_status == "3" || div_status == "2")
+                                        thumbnail.innerHTML = ` <svg style="margin-top: 50px; margin-left: 125px; filter: drop-shadow( -5px 3px 3px rgba(0, 0, 0, .7));" height="25" width="25">
+                                                    <polygon points="25,25 25,0 0,25" style="fill:lime;" />
+                                                </svg>`;
+
+                                    if (!darkMode) thumbnail.style = `background-image: url(/images/get_beatmap_image_nodisk?id=${element.id}), url(/gifs/loading.gif)`;
+                                    else thumbnail.style = `background-image: url(/images/get_beatmap_image_nodisk?id=${element.id}), url(/gifs/loading_dark.gif)`;
+
+                                    parent.appendChild(thumbnail);
+
+                                    var information = document.createElement('div');
+                                    information.className = 'beatmap-panel-information';
+
+                                    parent.appendChild(information);
+
+                                    var title = document.createElement('span');
+                                    title.innerHTML = element.title;
+                                    title.className = 'beatmap-panel-information-title';
+
+                                    information.appendChild(title);
+
+                                    var author = document.createElement('span');
+                                    author.className = 'beatmap-panel-information-subtitle';
+                                    author.innerHTML = element.artist + "&nbsp;";
+
+                                    var creator = document.createElement('span');
+                                    if (!darkMode) creator.style = 'font-size: 12px; color: #5f5f5f';
+                                    else creator.style = 'font-size: 12px; color: white';
+                                    creator.innerHTML = element.author;
+
+                                    author.appendChild(creator);
+                                    information.appendChild(author);
+
+                                    {
+                                        let dl_artist = element.artist;
+                                        let dl_author = element.author;
+                                        let dl_title = element.title;
+                                        let dl_status = element.status;
+
+                                        let dl = { val : 0 }; let dl_id = -2;
+                                        information.onmouseup = function (ev) {
+                                            if (ev.button == 0) {
+                                                if (dl.val == 0) {
+                                                    dl_id = startDownload(this.parentNode.id, dl_artist, dl_author, dl_title, dl_status, dl);
+
+                                                    if (dl_id === -1) { dl.val = 0; return; }
+
+                                                    dl.val = 1;
+                                                    return;
+                                                } else if (dl.val == 1) {
+                                                    dl.val = stop(dl_id, element.id);
+                                                    return;
+                                                } else if (dl.val == 2) {
+                                                    return;
+                                                }
+                                            }
+                                        };
+
+                                        var progressBar = document.createElement('div');
+                                        progressBar.className = 'download-progressbar';
+                                        progressBar.id = `${element.id}_progress`;
+
+                                        parent.append(progressBar);
+                                        beatmaps.appendChild(parent);
+
+                                        if (element.dl_status != {} && element.dl_status != undefined) {
+                                            createDownload(element.dl_status.Beatmapset_Id, element.dl_status.Id, progressBar, dl);
+                                        }
+                                    }
+                                }
+                            }
+                        }, 10);
+                        searchUpdaters.push(awaiter);
+                    }
+                }
+
+                searchRequest.open("GET", `/downloader/search?query=${tempQuery}&page=${pageCount}`, true);
+                document.getElementById('searchField').value = tempQuery;
+                pageCount++;
+                searchRequest.send();
+            }
+        };
+
+        function updateProgressBar(bar, id, progress_status_helper, timer, dl_) {
             var req2 = new XMLHttpRequest();
             req2.open('GET', `/downloader/dls?id=${id}`, false);
             req2.send();
@@ -24,12 +148,13 @@
             }
 
             if (obj.Status == 2) {
+                dl_.val = 0;
                 if (timer != undefined) clearInterval(timer);
 
                 if (!isDarkMode())
-                bar.text.style.color = 'darkgreen';
+                    bar.text.style.color = 'darkgreen';
                 else //a0c1a0
-                bar.text.style.color = '#a0c1a0';
+                    bar.text.style.color = '#a0c1a0';
 
 
                 bar.color = '#FF0000';
@@ -41,9 +166,11 @@
                 bar.animate(1.0);
             }
             else if (obj.Status == 4) {
+                dl_.val = 0;
                 clearInterval(timer);
             }
             else if (obj.Status == 3) {
+                dl_.val = 0;
                 clearInterval(timer);
 
                 bar.text.style.color = 'red';
@@ -54,6 +181,7 @@
                 progress_status_helper.dl_error = true;
                 bar.animate(1.0);
             } else {
+                dl_.val = 1;
                 bar.animate((1 / 100) * obj.Percentage);
             }
         }
@@ -68,13 +196,13 @@
 
             if (req2.readyState == 4 && req2.status == 200) {
                 document.getElementById(`${beatmapId}_progress`).innerHTML = '';
-                return false;
+                return 0;
             } else if (req2.readyState == 4 && req2.status == 400) {
-                return true;
+                return 1;
             }
         }
 
-        function createDownload(beatmapId, id, obj, info) {
+        function createDownload(beatmapId, id, obj, dl_) {
             if (id == -3) {
                 cSharpTools.calmDownMessageBox();
                 return;
@@ -84,10 +212,10 @@
                 return;
 
             if (obj == undefined)
-                loli = document.getElementById(`${beatmapId}_progress`);
-            else loli = obj;
+                progress_div = document.getElementById(`${beatmapId}_progress`);
+            else progress_div = obj;
 
-            loli.innerHTML = '';
+            progress_div.innerHTML = '';
 
             var progress_status_helper = {
                 dl_error: false,
@@ -96,97 +224,97 @@
             };
 
             if (!isDarkMode())
-            var bar = new ProgressBar.Circle(loli, {
-                trailColor: '#aaa',
-                color: ('#aaa'),
+                var bar = new ProgressBar.Circle(progress_div, {
+                    trailColor: '#aaa',
+                    color: ('#aaa'),
 
-                strokeWidth: 10,
-                trailWidth: 10,
-                easing: 'easeInOut',
-                duration: 1400,
-                text: {
-                    autoStyleContainer: false
-                },
-                from: { color: '#00BFFF', width: 10 },
-                to: { color: '#00BFFF', width: 10 },
+                    strokeWidth: 10,
+                    trailWidth: 10,
+                    easing: 'easeInOut',
+                    duration: 1400,
+                    text: {
+                        autoStyleContainer: false
+                    },
+                    from: { color: '#00BFFF', width: 10 },
+                    to: { color: '#00BFFF', width: 10 },
 
-                step: function (state, circle) {
-                    circle.path.setAttribute('stroke', state.color);
-                    circle.path.setAttribute('stroke-width', state.width);
-
-                    if (progress_status_helper.dl_error) {
-                        circle.path.setAttribute('stroke', '#FF0000');
+                    step: function (state, circle) {
+                        circle.path.setAttribute('stroke', state.color);
                         circle.path.setAttribute('stroke-width', state.width);
 
-                        circle.setText('!');
-                        return;
+                        if (progress_status_helper.dl_error) {
+                            circle.path.setAttribute('stroke', '#FF0000');
+                            circle.path.setAttribute('stroke-width', state.width);
+
+                            circle.setText('!');
+                            return;
+                        }
+
+                        if (progress_status_helper.dl_success) {
+
+                            circle.path.setAttribute('stroke', '#006400');
+                            circle.path.setAttribute('stroke-width', state.width);
+
+                            circle.setText('✓');
+                            return;
+                        }
+
+                        var value = Math.round(circle.value() * 100);
+                        if (value === 0) {
+                            circle.setText("0%");
+                        } else {
+                            circle.setText(`${value}%`);
+                        }
                     }
-
-                    if (progress_status_helper.dl_success) {
-
-                        circle.path.setAttribute('stroke', '#006400');
-                        circle.path.setAttribute('stroke-width', state.width);
-
-                        circle.setText('✓');
-                        return;
-                    }
-
-                    var value = Math.round(circle.value() * 100);
-                    if (value === 0) {
-                        circle.setText("0%");
-                    } else {
-                        circle.setText(`${value}%`);
-                    }
-                }
-            });
+                });
             else
-            var bar = new ProgressBar.Circle(loli, {
-                trailColor: ('#3d3d3d'),
-                color: ('#3d3d3d'),
+                var bar = new ProgressBar.Circle(progress_div, {
+                    trailColor: ('#3d3d3d'),
+                    color: ('#3d3d3d'),
 
-                strokeWidth: 10,
-                trailWidth: 10,
-                easing: 'easeInOut',
-                duration: 1400,
-                text: {
-                    autoStyleContainer: false
-                },
-                from: { color: '#757575', width: 10 },
-                to: { color: '#757575', width: 10 },
+                    strokeWidth: 10,
+                    trailWidth: 10,
+                    easing: 'easeInOut',
+                    duration: 1400,
+                    text: {
+                        autoStyleContainer: false
+                    },
+                    from: { color: '#757575', width: 10 },
+                    to: { color: '#757575', width: 10 },
 
-                step: function (state, circle) {
-                    circle.path.setAttribute('stroke', state.color);
-                    circle.path.setAttribute('stroke-width', state.width);
-
-                    if (progress_status_helper.dl_error) {
-                        circle.path.setAttribute('stroke', '#FF0000');
+                    step: function (state, circle) {
+                        circle.path.setAttribute('stroke', state.color);
                         circle.path.setAttribute('stroke-width', state.width);
 
-                        circle.setText('!');
-                        return;
-                    }
+                        if (progress_status_helper.dl_error) {
+                            circle.path.setAttribute('stroke', '#FF0000');
+                            circle.path.setAttribute('stroke-width', state.width);
 
-                    if (progress_status_helper.dl_success) {
-                        circle.path.setAttribute('stroke', '#a0c1a0');
-                        circle.path.setAttribute('stroke-width', state.width);
-                        
-                        circle.setText('✓');
-                        return;
-                    }
+                            circle.setText('!');
+                            return;
+                        }
 
-                    var value = Math.round(circle.value() * 100);
-                    if (value === 0) {
-                        circle.setText("0%");
-                    } else {
-                        circle.setText(`${value}%`);
+                        if (progress_status_helper.dl_success) {
+                            circle.path.setAttribute('stroke', '#a0c1a0');
+                            circle.path.setAttribute('stroke-width', state.width);
+
+                            circle.setText('✓');
+                            return;
+                        }
+
+                        var value = Math.round(circle.value() * 100);
+                        if (value === 0) {
+                            circle.setText("0%");
+                        } else {
+                            circle.setText(`${value}%`);
+                        }
                     }
-                }
-            });
+                });
 
             if (!isDarkMode())
-            bar.text.style.color = 'black';
+                bar.text.style.color = 'black';
             else
-            bar.text.style.color = 'white';            
+                bar.text.style.color = 'white';
 
             bar.text.style.position = 'initial';
             bar.text.style.textAlign = 'center';
@@ -195,10 +323,10 @@
             bar.text.style.fontFamily = '"Raleway", Helvetica, sans-serif';
             bar.text.style.fontSize = '10px';
 
-            updateProgressBar(bar, id, progress_status_helper, undefined);
+            updateProgressBar(bar, id, progress_status_helper, undefined, dl_);
 
             if (!progress_status_helper.dl_success && !progress_status_helper.dl_error && !progress_status_helper.dl_stop) {
-                var timer = setInterval(() => { updateProgressBar(bar, id, progress_status_helper, timer); }, 1000);
+                var timer = setInterval(() => { updateProgressBar(bar, id, progress_status_helper, timer, dl_); }, 1000);
                 updating.push(timer);
             }
         }
@@ -207,7 +335,7 @@
             e.preventDefault();
         });
 
-        function startDownload(beatmapId, artist, author, title, status) {
+        function startDownload(beatmapId, artist, author, title, status, dl_) {
             var req = new XMLHttpRequest();
 
             req.open('GET', `/downloader/start?id=${beatmapId}&artist=${artist}&author=${author}&title=${title}&status=${status}`, false);
@@ -215,7 +343,9 @@
 
             if (req.readyState == 4 && req.status == 200) {
                 var id = parseInt(req.responseText);
-                createDownload(beatmapId, id);
+                if (Number.isNaN(id)) { return -1; }
+                if (id == -3) { cSharpTools.calmDownMessageBox(); return -1; }
+                createDownload(beatmapId, id, undefined, dl_);
                 return id;
             }
         }
@@ -233,9 +363,17 @@
         }
 
         var searchRequest;
+        var pageCount = 1;
+
+        var searchUpdaters = [];
+
+        var tempQuery = '';
 
         function search(query) {
+            tempQuery = query;
+            pageCount = 0;
             updating.forEach(timer => clearInterval(timer));
+            updating = [];
             document.getElementById("beatmaps").innerHTML = '<span style="color: gray">Loading...</span>';
 
             if (searchRequest != undefined) {
@@ -251,14 +389,17 @@
                             return;
                         else {
                             updateList(JSON.parse(this.responseText));
-                            clearInterval(awaiter);
+                            searchUpdaters.forEach(timer => clearInterval(timer));
+                            searchUpdaters = [];
                         }
                     }, 10);
+                    searchUpdaters.push(awaiter);
                 }
             }
 
-            searchRequest.open("GET", `/downloader/search?query=${query}`, true);
+            searchRequest.open("GET", `/downloader/search?query=${query}&page=${pageCount}`, true);
             document.getElementById('searchField').value = query;
+            pageCount++;
             searchRequest.send();
         }
 
@@ -305,28 +446,28 @@
                     parent.className = 'beatmap-panel';
                     parent.style = 'margin-bottom: 10px';
 
-                    var shesAThot = document.createElement('div');
-                    shesAThot.className = 'beatmap-panel-thumbnail';
+                    var thumbnail = document.createElement('div');
+                    thumbnail.className = 'beatmap-panel-thumbnail';
 
-                    var ifSheBreathes = element.status;
+                    var div_status = element.status;
 
-                    if (ifSheBreathes == "1")
-                        shesAThot.innerHTML = ` <svg style="margin-top: 50px; margin-left: 125px; filter: drop-shadow( -5px 3px 3px rgba(0, 0, 0, .7));" height="25" width="25">
+                    if (div_status == "1")
+                        thumbnail.innerHTML = ` <svg style="margin-top: 50px; margin-left: 125px; filter: drop-shadow( -5px 3px 3px rgba(0, 0, 0, .7));" height="25" width="25">
                                                     <polygon points="25,25 25,0 0,25" style="fill:deepskyblue;" />
                                                 </svg>`;
-                    else if (ifSheBreathes == "4")
-                        shesAThot.innerHTML = ` <svg style="margin-top: 50px; margin-left: 125px; filter: drop-shadow( -5px 3px 3px rgba(0, 0, 0, .7));" height="25" width="25">
+                    else if (div_status == "4")
+                        thumbnail.innerHTML = ` <svg style="margin-top: 50px; margin-left: 125px; filter: drop-shadow( -5px 3px 3px rgba(0, 0, 0, .7));" height="25" width="25">
                                                     <polygon points="25,25 25,0 0,25" style="fill:red;" />
                                                 </svg>`;
-                    else if (ifSheBreathes == "3" || ifSheBreathes == "2")
-                        shesAThot.innerHTML = ` <svg style="margin-top: 50px; margin-left: 125px; filter: drop-shadow( -5px 3px 3px rgba(0, 0, 0, .7));" height="25" width="25">
+                    else if (div_status == "3" || div_status == "2")
+                        thumbnail.innerHTML = ` <svg style="margin-top: 50px; margin-left: 125px; filter: drop-shadow( -5px 3px 3px rgba(0, 0, 0, .7));" height="25" width="25">
                                                     <polygon points="25,25 25,0 0,25" style="fill:lime;" />
                                                 </svg>`;
 
-                    if (!darkMode) shesAThot.style = `background-image: url(https://assets.ppy.sh/beatmaps/${element.id}/covers/list@2x.jpg), url(/gifs/loading.gif)`;
-                    else shesAThot.style = `background-image: url(https://assets.ppy.sh/beatmaps/${element.id}/covers/list@2x.jpg), url(/gifs/loading_dark.gif)`;
+                    if (!darkMode) thumbnail.style = `background-image: url(/images/get_beatmap_image_nodisk?id=${element.id}), url(/gifs/loading.gif)`;
+                    else thumbnail.style = `background-image: url(/images/get_beatmap_image_nodisk?id=${element.id}), url(/gifs/loading_dark.gif)`;
 
-                    parent.appendChild(shesAThot);
+                    parent.appendChild(thumbnail);
 
                     var information = document.createElement('div');
                     information.className = 'beatmap-panel-information';
@@ -357,30 +498,34 @@
                         let dl_title = element.title;
                         let dl_status = element.status;
 
-                        let dl = false; let dl_id = -2;
+                        let dl = { val : 0 }; let dl_id = -2;
                         information.onmouseup = function (ev) {
-                            if (ev.button == 2) {
-                                if (!dl)
-                                    dl_id = startDownload(this.parentNode.id, dl_artist, dl_author, dl_title, dl_status);
-                                else {
-                                    dl = stop(dl_id, element.id);
+                            if (ev.button == 0) {
+                                if (dl.val == 0) {
+                                    dl_id = startDownload(this.parentNode.id, dl_artist, dl_author, dl_title, dl_status, dl);
+
+                                    if (dl_id === -1) dl.val = 0;
+                                    else dl.val = 1;
+                                    return;
+                                } else if (dl.val == 1) {
+                                    dl.val = stop(dl_id, element.id);
+                                    return;
+                                } else if (dl.val == 2) {
                                     return;
                                 }
-
-                                dl = !dl;
                             }
                         };
-                    }
 
-                    var progressBar = document.createElement('div');
-                    progressBar.className = 'download-progressbar';
-                    progressBar.id = `${element.id}_progress`;
+                        var progressBar = document.createElement('div');
+                        progressBar.className = 'download-progressbar';
+                        progressBar.id = `${element.id}_progress`;
 
-                    parent.append(progressBar);
-                    beatmaps.appendChild(parent);
+                        parent.append(progressBar);
+                        beatmaps.appendChild(parent);
 
-                    if (element.dl_status != {} && element.dl_status != undefined) {
-                        createDownload(element.dl_status.Beatmapset_Id, element.dl_status.Id, progressBar);
+                        if (element.dl_status != {} && element.dl_status != undefined) {
+                            createDownload(element.dl_status.Beatmapset_Id, element.dl_status.Id, progressBar, dl);
+                        }
                     }
                 }
                 working = false;
@@ -436,7 +581,8 @@
     </div>
 
     <div id="main-container" style="margin-top: -20px; overflow-y: auto; text-align: center; padding: 30px;">
-        <input onchange="search(this.value)" placeholder="Kuba Oms - My love" type="text" class="search-field-downloader" id="searchField"></input>
+        <input onchange="search(this.value)" placeholder="Kuba Oms - My love" type="text"
+            class="search-field-downloader" id="searchField"></input>
         <div id="beatmaps" style="margin-top: 15px;"></div>
     </div>
 </body>

@@ -72,6 +72,7 @@ namespace ORB4
             _mainWindow.FixZoom();
         }
 
+
         public void CalmDownMessageBox()
         {
             System.Windows.Forms.MessageBox.Show($"Yo, chill! Are you trying to kill {_engine.LocalSettings.Mirror.ToString()}? You can only queue 10 beatmaps a time.", "Alert", System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Exclamation);
@@ -190,6 +191,12 @@ namespace ORB4
 
         internal Panel _loadingPanel;
 
+
+        public bool DownloadBeatmapAgainMessageBox()
+        {
+            return System.Windows.Forms.MessageBox.Show($"You already have this beatmap: are you sure you want to download it again?", "Question", System.Windows.Forms.MessageBoxButtons.YesNo, System.Windows.Forms.MessageBoxIcon.Question) == DialogResult.Yes;
+        }
+
         private void BrowserPaint(object sender, PaintEventArgs e)
         {
         }
@@ -205,7 +212,7 @@ namespace ORB4
 
                 predW = this.Width;
                 predY = this.Height;
-
+   
                 _initialized = true;
             }
         }

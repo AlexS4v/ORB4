@@ -211,6 +211,7 @@ hr {
     border: 0px solid rgb(28, 145, 223);
     background-color: #7e96a7;
     -webkit-mask-size: 105%;
+    -webkit-mask-repeat: no-repeat;
     -webkit-mask-image: url(svg/save.svg);
     background-repeat: no-repeat;
     background-size: contain;
@@ -227,6 +228,7 @@ hr {
     border: 0px solid rgb(28, 145, 223);
     background-color: #7e96a7;
     mask-image: url(svg/close-icon.svg);
+    -webkit-mask-repeat: no-repeat;
     -webkit-mask-image: url(svg/close-icon.svg);
     background-repeat: no-repeat;
     background-size: contain;
@@ -302,6 +304,7 @@ hr {
     border: 0px solid rgb(28, 145, 223);
     background-color: #7e96a7;
     -webkit-mask-image: url(svg/settings-icon.svg);
+    -webkit-mask-repeat: no-repeat;
     background-repeat: no-repeat;
     background-size: contain;
     text-align: center;

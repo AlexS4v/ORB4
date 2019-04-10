@@ -178,6 +178,7 @@ hr {
     text-align: center;
     text-decoration: none;
     display: inline-block;
+    -webkit-mask-repeat: no-repeat;
     width: 30px;
     height: 30px;
     outline: none;
@@ -197,6 +198,7 @@ hr {
     width: 30px;
     height: 30px;
     outline: none;
+    -webkit-mask-repeat: no-repeat;
     cursor: pointer;
 }
 
@@ -262,6 +264,7 @@ hr {
     border: 0px solid rgb(28, 145, 223);
     background-color: rgb(28, 145, 223);
     -webkit-mask-image: url(svg/settings-icon.svg);
+    -webkit-mask-repeat: no-repeat;
     background-repeat: no-repeat;
     background-size: contain;
     text-align: center;

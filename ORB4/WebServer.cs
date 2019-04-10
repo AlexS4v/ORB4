@@ -41,7 +41,7 @@ namespace ORB4
 
         public WebServer()
         {
-            _thumbnailsSemaphore = new System.Threading.SemaphoreSlim(1, 1);
+            _thumbnailsSemaphore = new System.Threading.SemaphoreSlim(2,2);
             _listener = new HttpListener();
             Engine = new Engine() { ApiKey = "", LocalSettings = ORB4.Engine.Settings.Load() };
             BeatmapDownloader = new BeatmapDownloader(ref Engine);
@@ -150,7 +150,9 @@ namespace ORB4
                             context.Response.StatusCode = 200;
                             bytes = new byte[] { };
 
-                            if (!Engine.LocalSettings.AutoOpen)
+                            string statusd = Engine.GetStatus();
+
+                            if (!Engine.LocalSettings.AutoOpen && Engine.FoundCurrentSearch > 0)
                             {
                                 bytes = Encoding.UTF8.GetBytes("Beatmaps_viewer");
                             }
@@ -373,7 +375,27 @@ namespace ORB4
                                 }
                                 return;
                             }
-                            
+                            else if (context.Request.RawUrl.Contains("/images/get_beatmap_image_nodisk"))
+                            {
+                                await _thumbnailsSemaphore.WaitAsync();
+                                try
+                                {
+                                    string query = context.Request.QueryString["id"];
+
+                                    context.Response.StatusCode = 200;
+                                    bytes = await ThumbnailDownloader.MainThumbnailDownloader.GetThumbnailNoDisk(int.Parse(query));
+                                    context.Response.ContentLength64 = bytes.Length;
+                                    context.Response.ContentType = "image/jpeg";
+
+                                    await context.Response.OutputStream.WriteAsync(bytes, 0, bytes.Length);
+                                    context.Response.OutputStream.Close();
+                                    return;
+                                }
+                                finally
+                                {
+                                    _thumbnailsSemaphore.Release();
+                                }
+                            }
                             else if (context.Request.RawUrl.Contains("/images/get_beatmap_image"))
                             {
                                 await _thumbnailsSemaphore.WaitAsync();
@@ -394,7 +416,8 @@ namespace ORB4
                                 {
                                     _thumbnailsSemaphore.Release();
                                 }
-                            }else if (context.Request.RawUrl.Contains("/sounds/play"))
+                            }
+                            else if (context.Request.RawUrl.Contains("/sounds/play"))
                             {
                                 context.Response.StatusCode = 200;
                                 context.Response.ContentType = "text/plain";
@@ -425,8 +448,15 @@ namespace ORB4
                             else if (context.Request.RawUrl.Contains("/downloader/search"))
                             {
                                 string query = context.Request.QueryString["query"];
+                                string page = "1";
+
+                                try
+                                {
+                                    page = context.Request.QueryString["page"];
+                                } catch { }
+
                                 bytes = Encoding.UTF8.GetBytes(
-                                    await BeatmapDownloader.Search(query));
+                                    await BeatmapDownloader.Search(query, int.Parse(page)));
 
                                 context.Response.StatusCode = 200;
                                 context.Response.ContentType = "application/json";
@@ -442,6 +472,21 @@ namespace ORB4
                                 string query2 = context.Request.QueryString["artist"];
                                 string query3 = context.Request.QueryString["title"];
                                 string query4 = context.Request.QueryString["status"];
+                                
+                                if (await BeatmapDownloader.Exists(int.Parse(query0)))
+                                {
+                                    if (!MainWindow.Current.DownloadBeatmapAgainMessageBox())
+                                    {
+                                        await context.Response.OutputStream.WriteAsync(new byte[] { }, 0, 0);
+                                        context.Response.OutputStream.Close();
+                                        break;
+                                    }
+                                    else
+                                    {
+                                        await BeatmapDownloader.Delete(int.Parse(query0));
+                                    }
+                                }
+
                                 bytes = Encoding.UTF8.GetBytes(
                                     (await BeatmapDownloader
                                     .RegisterDownload (int.Parse(query0), int.Parse(query4), query1, query2, query3))

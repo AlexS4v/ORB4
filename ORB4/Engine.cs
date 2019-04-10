@@ -23,7 +23,7 @@ namespace ORB4
             Hexide, Bloodcat 
         }
 
-        public const string Version = "4.2T";
+        public const string Version = "4.2.1T";
 
         public const int MaxRequestsPerMinute = 350;
 
@@ -817,10 +817,10 @@ namespace ORB4
                         {
                             link = _uncheckedLinks.Dequeue();
 
-                            if (!LocalSettings.Ripple)
-                                id = int.Parse(link.Replace($"https://osu.ppy.sh/api/get_beatmaps?k=NULL&s=", string.Empty));
+                            if (LocalSettings.Ripple) 
+                                id = int.Parse(link.Replace($"https://ripple.moe/api/get_beatmaps?k=NULL&s=", string.Empty));
                             else
-                                id = int.Parse(link.Replace($"https://ripple.moe/api/get_beatmaps?k={ApiKey}&s=", string.Empty));
+                                id = int.Parse(link.Replace($"https://osu.ppy.sh/api/get_beatmaps?k={ApiKey}&s=", string.Empty));
 
                             method = false;
                         }
@@ -969,6 +969,13 @@ namespace ORB4
 
         public Settings LocalSettings { get; set; } = new Settings();
         public string ApiKey { get; set; }
+
+        public int FoundCurrentSearch {
+            get
+            {
+                return _foundCount;
+            }
+        } 
 
         public void Start()
         {
