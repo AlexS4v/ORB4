@@ -189,7 +189,7 @@
 
 					mirror.onmouseup = function() {
 						if (event.button == 0) {
-                            window.parent.openDownloader(true, `https://osu.ppy.sh/s/${element.id}`);
+                            window.parent.openDownloader(true, `https://osu.ppy.sh/s/${element.id}`, true);
                         }
 					};
 
@@ -314,6 +314,7 @@
 
     </div>
 	</div>
+    <script src="/token_helper.js"></script>
 </body>
 
 </html>

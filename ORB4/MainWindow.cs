@@ -31,12 +31,14 @@ namespace ORB4
     class CSharpTools
     {
         private Engine _engine { get; set; }
+        private WebServer _server { get; set; }
         private MainWindow _mainWindow { get; set; }
 
-        public CSharpTools(ref Engine engine, ref MainWindow mainWindow)
+        public CSharpTools(ref Engine engine, ref MainWindow mainWindow, ref WebServer server)
         {
             _mainWindow = mainWindow;
             _engine = engine;
+            _server = server;
         }
 
         public void Initialize()
@@ -57,9 +59,20 @@ namespace ORB4
             }
         }
 
+        public void CalmDownMessageBox()
+        {
+            _mainWindow.CalmDownMessageBox();
+        }
+
         public string GetVersion()
         {
             return Engine.Version;
+        }
+
+        public string GetToken()
+        {
+            _server.Token = Guid.NewGuid().ToByteArray();
+            return Convert.ToBase64String(_server.Token);
         }
 
         public void OpenUrl(string url)
@@ -72,11 +85,6 @@ namespace ORB4
             _mainWindow.FixZoom();
         }
 
-
-        public void CalmDownMessageBox()
-        {
-            System.Windows.Forms.MessageBox.Show($"Yo, chill! Are you trying to kill {_engine.LocalSettings.Mirror.ToString()}? You can only queue 10 beatmaps a time.", "Alert", System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Exclamation);
-        }
 
         public void RegisterApiKey(string apikey)
         {
@@ -151,7 +159,7 @@ namespace ORB4
 
             _browser = new ChromiumWebBrowser($"{_server.Url}html/mainwindow.html") { Dock = DockStyle.Fill };
             Logger.MainLogger.Log(Logger.LogTypes.Info, "BrowserObject.Create -> Success");
-            _browser.RegisterJsObject("cSharpTools", new CSharpTools(ref _server.Engine, ref Current));
+            _browser.RegisterJsObject("cSharpTools", new CSharpTools(ref _server.Engine, ref Current, ref _server));
             Logger.MainLogger.Log(Logger.LogTypes.Info, "BrowserObject.RegisterJS -> Success");
             _browser.BackColor = Color.Black;
             this.BackColor = Color.Black;
@@ -191,6 +199,10 @@ namespace ORB4
 
         internal Panel _loadingPanel;
 
+        public void CalmDownMessageBox()
+        {
+            System.Windows.Forms.MessageBox.Show($"Yo, chill! Are you trying to kill {_server.Engine.LocalSettings.Mirror.ToString()}? You can only queue 10 beatmaps a time.", "Alert", System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Exclamation);
+        }
 
         public bool DownloadBeatmapAgainMessageBox()
         {

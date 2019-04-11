@@ -1,7 +1,5 @@
 <!DOCTYPE html>
 <html>
-
-
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -93,7 +91,7 @@
                                         let dl_title = element.title;
                                         let dl_status = element.status;
 
-                                        let dl = { val : 0 }; let dl_id = -2;
+                                        let dl = { val: 0 }; let dl_id = -2;
                                         information.onmouseup = function (ev) {
                                             if (ev.button == 0) {
                                                 if (dl.val == 0) {
@@ -130,7 +128,11 @@
                     }
                 }
 
-                searchRequest.open("GET", `/downloader/search?query=${tempQuery}&page=${pageCount}`, true);
+
+                if (unranked_b)
+                    searchRequest.open("GET", `/downloader/search?query=${tempQuery}&page=${pageCount}`, true);
+                else
+                    searchRequest.open("GET", `/downloader/search?query=/r ${tempQuery}&page=${pageCount}`, true);
                 document.getElementById('searchField').value = tempQuery;
                 pageCount++;
                 searchRequest.send();
@@ -369,7 +371,7 @@
 
         var tempQuery = '';
 
-        function search(query) {
+        function search(query, ignoreRanking = false) {
             tempQuery = query;
             pageCount = 0;
             updating.forEach(timer => clearInterval(timer));
@@ -397,7 +399,14 @@
                 }
             }
 
-            searchRequest.open("GET", `/downloader/search?query=${query}&page=${pageCount}`, true);
+            if (!ignoreRanking) {
+                if (unranked_b)
+                    searchRequest.open("GET", `/downloader/search?query=${query}&page=${pageCount}`, true);
+                else
+                    searchRequest.open("GET", `/downloader/search?query=/r ${query}&page=${pageCount}`, true);
+            } else
+                searchRequest.open("GET", `/downloader/search?query=${query}&page=${pageCount}`, true);
+
             document.getElementById('searchField').value = query;
             pageCount++;
             searchRequest.send();
@@ -498,7 +507,7 @@
                         let dl_title = element.title;
                         let dl_status = element.status;
 
-                        let dl = { val : 0 }; let dl_id = -2;
+                        let dl = { val: 0 }; let dl_id = -2;
                         information.onmouseup = function (ev) {
                             if (ev.button == 0) {
                                 if (dl.val == 0) {
@@ -538,6 +547,16 @@
                 request.open("GET", `/sounds/play?id=${name}`, true);
                 request.send();
             }, 1);
+        }
+
+        var unranked_b = false;
+
+        function unrankedSwitchAction() {
+            playSound("Switch");
+
+            unranked_b = !unranked_b;
+
+            search(document.getElementById('searchField').value);
         }
 
         var closing = false;
@@ -580,11 +599,18 @@
         </div>
     </div>
 
+    <div class="onoffswitch">
+        <input onchange="unrankedSwitchAction()" type="checkbox" name="onoffswitch" class="onoffswitch-checkbox"
+            id="unranked">
+        <label class="onoffswitch-label" for="unranked"></label>
+    </div> &nbsp; Unranked
+
     <div id="main-container" style="margin-top: -20px; overflow-y: auto; text-align: center; padding: 30px;">
         <input onchange="search(this.value)" placeholder="Kuba Oms - My love" type="text"
             class="search-field-downloader" id="searchField"></input>
         <div id="beatmaps" style="margin-top: 15px;"></div>
     </div>
+    <script src="/token_helper.js"></script>
 </body>
 
 </html>

@@ -717,19 +717,34 @@ namespace ORB4
             }
         }
 
+        bool _errorNotified = false;
+
         public string GetStatus()
         {
             if (!Running)
                 return "Stopped";
 
             if (_foundCount > 0)
+            {
+                _errorNotified = false;
                 return _foundCount.ToString();
+            }
             else
             {
                 if (_lastError != string.Empty)
+                {
+                    if (!_errorNotified) {
+                        Utils.PlayWavAsync(Properties.Resources.Error);
+                        _errorNotified = true;
+                    }
+
                     return _lastError;
+                }
                 else
+                {
+                    _errorNotified = false;
                     return "Searching";
+                }
             }
         }
 
@@ -873,7 +888,7 @@ namespace ORB4
                                     _lastError = "Invalid API Key";
                                     _invalidApiKey = true;
                                 }
-                                else
+                                else 
                                     _lastError = "API Error";
 
                                 Logger.MainLogger.Log(Logger.LogTypes.Warning, $"SearchThread.Response.Error -> {error}.");
@@ -979,6 +994,8 @@ namespace ORB4
 
         public void Start()
         {
+            _errorNotified = false;
+
             if (!LocalSettings.OldBeatmapsB && !LocalSettings.NewBeatmapsB)
             {
                 if (System.Windows.Forms.MessageBox.Show("Please, enable at least old or new beatmaps in the settings in order to search.", "...Really?", System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Exclamation) == System.Windows.Forms.DialogResult.OK)

@@ -194,6 +194,7 @@ namespace ORB4
 
         public async Task<string> Search(string query, int page)
         {
+            page += 1;
             SyncAlreadyDownloaded();
 
             _searchClient.DefaultRequestHeaders.Add("user-agent", $"ORB ({Engine.Version})");

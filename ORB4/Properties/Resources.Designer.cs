@@ -253,6 +253,16 @@ namespace ORB4.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
+        internal static byte[] _27 {
+            get {
+                object obj = ResourceManager.GetObject("_27", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
         internal static byte[] _3 {
             get {
                 object obj = ResourceManager.GetObject("_3", resourceCulture);
@@ -306,6 +316,16 @@ namespace ORB4.Properties {
         internal static byte[] Downloaded {
             get {
                 object obj = ResourceManager.GetObject("Downloaded", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] Error {
+            get {
+                object obj = ResourceManager.GetObject("Error", resourceCulture);
                 return ((byte[])(obj));
             }
         }

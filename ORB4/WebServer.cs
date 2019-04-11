@@ -41,7 +41,7 @@ namespace ORB4
 
         public WebServer()
         {
-            _thumbnailsSemaphore = new System.Threading.SemaphoreSlim(2,2);
+            _thumbnailsSemaphore = new System.Threading.SemaphoreSlim(4,4);
             _listener = new HttpListener();
             Engine = new Engine() { ApiKey = "", LocalSettings = ORB4.Engine.Settings.Load() };
             BeatmapDownloader = new BeatmapDownloader(ref Engine);
@@ -78,6 +78,7 @@ namespace ORB4
                 { "/css/svg/downloader-bracket-icon.svg", new HtmlResource(23, "image/svg+xml") },
                 { "/progressbar.js", new HtmlResource(24, "application/javascript") },
                 { "/html/list_dl.html", new HtmlResource(25, "text/html") },
+                { "/token_helper.js", new HtmlResource(27, "application/javascript") },
             };
         }
 
@@ -112,7 +113,8 @@ namespace ORB4
                 var cookie = context.Request.Cookies["token"];
                 if (cookie != null)
                 {
-                    if (cookie.Value != Convert.ToBase64String(Token))
+                    string base64 = Convert.ToBase64String(Token);
+                    if (cookie.Value != base64)
                     {
                         return;
                     }

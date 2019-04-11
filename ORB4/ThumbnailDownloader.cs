@@ -64,7 +64,7 @@ namespace ORB4
                 else if (download.Status == -1)
                 {
                     return Properties.Resources._13;
-                }
+                } 
 
                 return ReadFromStream(download.Pos, download.Length);
             }
@@ -114,7 +114,6 @@ namespace ORB4
 
         private byte[] ReadFromStream(long pos, int length)
         {
-            _getSemaphore.WaitOne();
             byte[] buffer = new byte[length];
             _writeSemaphore.WaitOne();
             {
