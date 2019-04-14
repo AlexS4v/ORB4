@@ -1,15 +1,28 @@
 <!DOCTYPE html>
 <html>
+
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <script src="/progressbar.js"></script>
+    <script src="/preview_player.js"></script>
     <link rel="stylesheet" type="text/css" media="screen" href="../css/main.css">
 </head>
 
 <body style="overflow-y: auto;">
     <script>
+        function openBeatmapset(x) {
+            var request = new XMLHttpRequest();
+            request.open("GET", `/utils/open_beatmapset?id=${x.parentNode.id}&b_id=${x.parentNode.getAttribute('b_id')}`, false);
+            request.send();
+        }
+
         var updating = [];
+        window.onkeyup = function (ev) {
+            if (ev.keyCode == 27) {
+                closeFrame();
+            }
+        };
 
         window.onscroll = function (ev) {
             if (Math.round(window.innerHeight + window.scrollY + 1) >= document.body.scrollHeight) {
@@ -43,20 +56,27 @@
                                     thumbnail.className = 'beatmap-panel-thumbnail';
 
                                     var div_status = element.status;
+                                    var preview = document.createElement('div');
+                                    preview.className = "beatmap-panel-preview";
+
+                                    preview.onmouseup = function () {
+                                        play_preview(this.parentNode.parentNode.id, this);
+                                    };
 
                                     if (div_status == "1")
-                                        thumbnail.innerHTML = ` <svg style="margin-top: 50px; margin-left: 125px; filter: drop-shadow( -5px 3px 3px rgba(0, 0, 0, .7));" height="25" width="25">
+                                        preview.innerHTML = ` <svg style="margin-top: 50px; margin-left: 125px; filter: drop-shadow( -5px 3px 3px rgba(0, 0, 0, .7));" height="25" width="25">
                                                     <polygon points="25,25 25,0 0,25" style="fill:deepskyblue;" />
                                                 </svg>`;
                                     else if (div_status == "4")
-                                        thumbnail.innerHTML = ` <svg style="margin-top: 50px; margin-left: 125px; filter: drop-shadow( -5px 3px 3px rgba(0, 0, 0, .7));" height="25" width="25">
+                                        preview.innerHTML = ` <svg style="margin-top: 50px; margin-left: 125px; filter: drop-shadow( -5px 3px 3px rgba(0, 0, 0, .7));" height="25" width="25">
                                                     <polygon points="25,25 25,0 0,25" style="fill:red;" />
                                                 </svg>`;
                                     else if (div_status == "3" || div_status == "2")
-                                        thumbnail.innerHTML = ` <svg style="margin-top: 50px; margin-left: 125px; filter: drop-shadow( -5px 3px 3px rgba(0, 0, 0, .7));" height="25" width="25">
+                                        preview.innerHTML = ` <svg style="margin-top: 50px; margin-left: 125px; filter: drop-shadow( -5px 3px 3px rgba(0, 0, 0, .7));" height="25" width="25">
                                                     <polygon points="25,25 25,0 0,25" style="fill:lime;" />
                                                 </svg>`;
 
+                                    thumbnail.appendChild(preview);
                                     if (!darkMode) thumbnail.style = `background-image: url(/images/get_beatmap_image_nodisk?id=${element.id}), url(/gifs/loading.gif)`;
                                     else thumbnail.style = `background-image: url(/images/get_beatmap_image_nodisk?id=${element.id}), url(/gifs/loading_dark.gif)`;
 
@@ -92,7 +112,8 @@
                                         let dl_status = element.status;
 
                                         let dl = { val: 0 }; let dl_id = -2;
-                                        information.onmouseup = function (ev) {
+
+                                        var downloadFun = function (ev) {
                                             if (ev.button == 0) {
                                                 if (dl.val == 0) {
                                                     dl_id = startDownload(this.parentNode.id, dl_artist, dl_author, dl_title, dl_status, dl);
@@ -107,8 +128,59 @@
                                                 } else if (dl.val == 2) {
                                                     return;
                                                 }
+                                            } else if (ev.button == 2) {
+                                                openBeatmapset(this);
                                             }
                                         };
+
+                                        for (let k = 0; k < element.modes.length; k++) {
+                                            const mod = element.modes[k];
+                                            var mod_ = document.createElement('div');
+                                            mod_.className = 'beatmap-panel-information-mode';
+
+                                            if (!darkMode) {
+                                                switch (mod) {
+                                                    case 0:
+                                                        mod_.style.backgroundImage = `url(/css/standard_mode.png)`;
+                                                        break;
+                                                    case 1:
+                                                        mod_.style.backgroundImage = `url(/css/taiko_mode.png)`;
+                                                        break;
+                                                    case 2:
+                                                        mod_.style.backgroundImage = `url(/css/ctb_mode.png)`;
+                                                        break;
+                                                    case 3:
+                                                        mod_.style.backgroundImage = `url(/css/mania_mode.png)`;
+                                                        break;
+                                                    default:
+                                                        break;
+                                                }
+                                            } else {
+                                                switch (mod) {
+                                                    case 0:
+                                                        mod_.style.backgroundImage = `url(/css/standard_mode_light.png)`;
+                                                        break;
+                                                    case 1:
+                                                        mod_.style.backgroundImage = `url(/css/taiko_mode_light.png)`;
+                                                        break;
+                                                    case 2:
+                                                        mod_.style.backgroundImage = `url(/css/ctb_mode_light.png)`;
+                                                        break;
+                                                    case 3:
+                                                        mod_.style.backgroundImage = `url(/css/mania_mode_light.png)`;
+                                                        break;
+                                                    default:
+                                                        break;
+                                                }
+                                            }
+
+                                            mod_.onmouseup = downloadFun;
+
+                                            parent.append(mod_);
+                                        }
+
+                                        information.onmouseup = downloadFun;
+
 
                                         var progressBar = document.createElement('div');
                                         progressBar.className = 'download-progressbar';
@@ -130,9 +202,9 @@
 
 
                 if (unranked_b)
-                    searchRequest.open("GET", `/downloader/search?query=${tempQuery}&page=${pageCount}`, true);
+                    searchRequest.open("GET", `/downloader/search_unranked?query=${tempQuery}&page=${pageCount}`, true);
                 else
-                    searchRequest.open("GET", `/downloader/search?query=/r ${tempQuery}&page=${pageCount}`, true);
+                    searchRequest.open("GET", `/downloader/search?query=${tempQuery}&page=${pageCount}`, true);
                 document.getElementById('searchField').value = tempQuery;
                 pageCount++;
                 searchRequest.send();
@@ -401,27 +473,17 @@
 
             if (!ignoreRanking) {
                 if (unranked_b)
-                    searchRequest.open("GET", `/downloader/search?query=${query}&page=${pageCount}`, true);
+                    searchRequest.open("GET", `/downloader/search_unranked?query=${tempQuery}&page=${pageCount}`, true);
                 else
-                    searchRequest.open("GET", `/downloader/search?query=/r ${query}&page=${pageCount}`, true);
+                    searchRequest.open("GET", `/downloader/search?query=${tempQuery}&page=${pageCount}`, true);
             } else
-                searchRequest.open("GET", `/downloader/search?query=${query}&page=${pageCount}`, true);
+                searchRequest.open("GET", `/downloader/search_unranked?query=${tempQuery}&page=${pageCount}`, true);
 
-            document.getElementById('searchField').value = query;
             pageCount++;
             searchRequest.send();
         }
 
         var working = false;
-
-        /*
-
-        AZZURRO: RANKATA
-        QUALIFICATA: VERDE
-        LOVVATA: ROSSA
-        E NON RANKATA: VAFFANCULOSA
-
-        */
 
         function updateList(array) {
             if (working) {
@@ -460,18 +522,27 @@
 
                     var div_status = element.status;
 
+                    var preview = document.createElement('div');
+                    preview.className = "beatmap-panel-preview";
+
+                    preview.onmouseup = function () {
+                        play_preview(this.parentNode.parentNode.id, this);
+                    };
+
                     if (div_status == "1")
-                        thumbnail.innerHTML = ` <svg style="margin-top: 50px; margin-left: 125px; filter: drop-shadow( -5px 3px 3px rgba(0, 0, 0, .7));" height="25" width="25">
+                        preview.innerHTML = ` <svg style="margin-top: 50px; margin-left: 125px; filter: drop-shadow( -5px 3px 3px rgba(0, 0, 0, .7));" height="25" width="25">
                                                     <polygon points="25,25 25,0 0,25" style="fill:deepskyblue;" />
                                                 </svg>`;
                     else if (div_status == "4")
-                        thumbnail.innerHTML = ` <svg style="margin-top: 50px; margin-left: 125px; filter: drop-shadow( -5px 3px 3px rgba(0, 0, 0, .7));" height="25" width="25">
+                        preview.innerHTML = ` <svg style="margin-top: 50px; margin-left: 125px; filter: drop-shadow( -5px 3px 3px rgba(0, 0, 0, .7));" height="25" width="25">
                                                     <polygon points="25,25 25,0 0,25" style="fill:red;" />
                                                 </svg>`;
                     else if (div_status == "3" || div_status == "2")
-                        thumbnail.innerHTML = ` <svg style="margin-top: 50px; margin-left: 125px; filter: drop-shadow( -5px 3px 3px rgba(0, 0, 0, .7));" height="25" width="25">
+                        preview.innerHTML = ` <svg style="margin-top: 50px; margin-left: 125px; filter: drop-shadow( -5px 3px 3px rgba(0, 0, 0, .7));" height="25" width="25">
                                                     <polygon points="25,25 25,0 0,25" style="fill:lime;" />
                                                 </svg>`;
+
+                    thumbnail.appendChild(preview);
 
                     if (!darkMode) thumbnail.style = `background-image: url(/images/get_beatmap_image_nodisk?id=${element.id}), url(/gifs/loading.gif)`;
                     else thumbnail.style = `background-image: url(/images/get_beatmap_image_nodisk?id=${element.id}), url(/gifs/loading_dark.gif)`;
@@ -508,13 +579,15 @@
                         let dl_status = element.status;
 
                         let dl = { val: 0 }; let dl_id = -2;
-                        information.onmouseup = function (ev) {
+
+                        var downloadFun = function (ev) {
                             if (ev.button == 0) {
                                 if (dl.val == 0) {
                                     dl_id = startDownload(this.parentNode.id, dl_artist, dl_author, dl_title, dl_status, dl);
 
-                                    if (dl_id === -1) dl.val = 0;
-                                    else dl.val = 1;
+                                    if (dl_id === -1) { dl.val = 0; return; }
+
+                                    dl.val = 1;
                                     return;
                                 } else if (dl.val == 1) {
                                     dl.val = stop(dl_id, element.id);
@@ -522,8 +595,59 @@
                                 } else if (dl.val == 2) {
                                     return;
                                 }
+                            } else if (ev.button == 2) {
+                                openBeatmapset(this);
                             }
                         };
+
+                        for (let k = 0; k < element.modes.length; k++) {
+                            const mod = element.modes[k];
+                            var mod_ = document.createElement('div');
+                            mod_.className = 'beatmap-panel-information-mode';
+
+                            if (!darkMode) {
+                                switch (mod) {
+                                    case 0:
+                                        mod_.style.backgroundImage = `url(/css/standard_mode.png)`;
+                                        break;
+                                    case 1:
+                                        mod_.style.backgroundImage = `url(/css/taiko_mode.png)`;
+                                        break;
+                                    case 2:
+                                        mod_.style.backgroundImage = `url(/css/ctb_mode.png)`;
+                                        break;
+                                    case 3:
+                                        mod_.style.backgroundImage = `url(/css/mania_mode.png)`;
+                                        break;
+                                    default:
+                                        break;
+                                }
+                            } else {
+                                switch (mod) {
+                                    case 0:
+                                        mod_.style.backgroundImage = `url(/css/standard_mode_light.png)`;
+                                        break;
+                                    case 1:
+                                        mod_.style.backgroundImage = `url(/css/taiko_mode_light.png)`;
+                                        break;
+                                    case 2:
+                                        mod_.style.backgroundImage = `url(/css/ctb_mode_light.png)`;
+                                        break;
+                                    case 3:
+                                        mod_.style.backgroundImage = `url(/css/mania_mode_light.png)`;
+                                        break;
+                                    default:
+                                        break;
+                                }
+                            }
+
+                            mod_.onmouseup = downloadFun;
+
+                            parent.append(mod_);
+                        }
+
+                        information.onmouseup = downloadFun;
+
 
                         var progressBar = document.createElement('div');
                         progressBar.className = 'download-progressbar';
@@ -594,23 +718,26 @@
         <br>
     </div>
 
-    <div id="settingsTitle" class="settings-title" style="opacity: 1;">Beatmap Downloader
+    <!--     color: black;
+    font-size: 16px; -->
+    <div id="settingsTitle" class="settings-title" style="opacity: 1;">ORB!direct
         <div style="display: inline-block; margin-left: -10px">
         </div>
+        <div class="normal-text" style="display: inline; margin-right: 65px; float: right; margin-top: 12px;" >
+            <div class="onoffswitch">
+                <input onchange="unrankedSwitchAction()" type="checkbox" name="onoffswitch" class="onoffswitch-checkbox"
+                    id="unranked">
+                <label class="onoffswitch-label" for="unranked"></label>
+            </div> &nbsp; Unranked
+        </div>
     </div>
-
-    <div class="onoffswitch">
-        <input onchange="unrankedSwitchAction()" type="checkbox" name="onoffswitch" class="onoffswitch-checkbox"
-            id="unranked">
-        <label class="onoffswitch-label" for="unranked"></label>
-    </div> &nbsp; Unranked
 
     <div id="main-container" style="margin-top: -20px; overflow-y: auto; text-align: center; padding: 30px;">
         <input onchange="search(this.value)" placeholder="Kuba Oms - My love" type="text"
             class="search-field-downloader" id="searchField"></input>
         <div id="beatmaps" style="margin-top: 15px;"></div>
     </div>
-    <script src="/token_helper.js"></script>
+
 </body>
 
 </html>

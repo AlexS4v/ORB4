@@ -7,8 +7,6 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Net.Sockets;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -80,7 +78,7 @@ namespace ORB4
             string out_ = string.Empty;
 
             await _listSemaphore.WaitAsync();
-            try { out_ = JsonConvert.SerializeObject(_dls.FindAll(x=>!x.F)); }
+            try { out_ = JsonConvert.SerializeObject(_dls.FindAll(x => !x.F)); }
             catch (Exception e)
             {
                 Logger.MainLogger.Log(Logger.LogTypes.Error, e);
@@ -114,7 +112,8 @@ namespace ORB4
             DL dl = null;
 
             await _listSemaphore.WaitAsync();
-            try {
+            try
+            {
                 if (_dls.Any(x => x.Beatmapset_Id == id && (x.Status == DLStatus.Pending || x.Status == DLStatus.Downloading || x.Status == DLStatus.Success)))
                 {
                     _listSemaphore.Release();
@@ -192,60 +191,16 @@ namespace ORB4
             }
         }
 
-        public async Task<string> Search(string query, int page)
+        public async Task<string> SearchUnranked(string query, int page)
         {
             page += 1;
             SyncAlreadyDownloaded();
 
             _searchClient.DefaultRequestHeaders.Add("user-agent", $"ORB ({Engine.Version})");
 
-            string json = string.Empty;
-
-            string[] parameters = query.Split(' ');
-            if (parameters.Length > 0)
-            {
-                StringBuilder sb = new StringBuilder();
-                for (int i = 1; i < parameters.Length; i++)
-                {
-                    sb.Append(" " + parameters[i]);
-                }
-
-                string withParams = sb.ToString();
-
-                if (parameters[0] == "/r")
-                    json = await
-                    (await _searchClient.GetAsync($"https://bloodcat.com/osu/?mod=json&q={withParams}&c=b&s=1&p={page}&m=&g=&l="))
-                    .Content.ReadAsStringAsync();
-                else if (parameters[0] == "/q")
-                    json = await
-                    (await _searchClient.GetAsync($"https://bloodcat.com/osu/?mod=json&q={withParams}&c=b&s=2,3&m=&g=&p={page}&l="))
-                    .Content.ReadAsStringAsync();
-                else if (parameters[0] == "/u")
-                    json = await
-                     (await _searchClient.GetAsync($"https://bloodcat.com/osu/?mod=json&q={withParams}&c=b&s=0&m=&g=&p={page}&l="))
-                     .Content.ReadAsStringAsync();
-                else if (parameters[0] == "/l")
-                    json = await
-                     (await _searchClient.GetAsync($"https://bloodcat.com/osu/?mod=json&q={withParams}&c=b&s=4&m=&g=&p={page}&l="))
-                     .Content.ReadAsStringAsync();
-                else if (parameters[0] == "/eu")
-                {
-                    //https://bloodcat.com/osu/?q=&c=b&s=1,2&m=&g=&l=
-                    json = await
-                     (await _searchClient.GetAsync($"https://bloodcat.com/osu/?mod=json&q={withParams}&c=b&s=1,2&m=&g=&p={page}&l="))
-                     .Content.ReadAsStringAsync();
-                }
-                else
-                {
-                    json = await
-                (await _searchClient.GetAsync($"https://bloodcat.com/osu/?mod=json&q={query}&c=b&p={page}&s=&m=&g=&l="))
-                .Content.ReadAsStringAsync();
-                }
-            }
-            else
-                json = await
-                (await _searchClient.GetAsync($"https://bloodcat.com/osu/?mod=json&q={query}&c=b&p={page}&s=&m=&g=&l="))
-                .Content.ReadAsStringAsync();
+            string json = await
+            (await _searchClient.GetAsync($"https://bloodcat.com/osu/?mod=json&q={query}&c=b&p={page}&s=&m=&g=&l="))
+            .Content.ReadAsStringAsync();
 
             JArray beatmaps = JArray.Parse(json);
             JArray beatmaps_patched = new JArray();
@@ -256,12 +211,63 @@ namespace ORB4
 
                 IEnumerable<DL> dls = _dls.FindAll(x => x.Beatmapset_Id == int.Parse((string)beatmap["id"]));
 
+                HashSet<int> mods = new HashSet<int>();
+
+                var childs = beatmap["beatmaps"];
+                foreach (var child in childs)
+                    mods.Add(child["mode"].Value<int>());
+
                 JObject beatmap_patched = new JObject
                 {
                     { "artist", beatmap["artist"] },
                     { "author", beatmap["creator"] },
                     { "title", beatmap["title"] },
                     { "id", beatmap["id"] },
+                    { "modes", JArray.FromObject(mods) },
+                    { "status", beatmap["status"] },
+                    { "dl_status", dls.Count() != 0 && dls.First().Status != DLStatus.Stopped ? JToken.Parse(JsonConvert.SerializeObject(dls.First())) : JToken.Parse("null")}
+                };
+
+                beatmaps_patched.Add(beatmap_patched);
+            }
+
+            return beatmaps_patched.ToString(Formatting.None);
+        }
+        
+
+        public async Task<string> Search(string query, int page)
+        {
+            page += 1;
+            SyncAlreadyDownloaded();
+
+            _searchClient.DefaultRequestHeaders.Add("user-agent", $"ORB ({Engine.Version})");
+
+            string json = await
+            (await _searchClient.GetAsync($"https://bloodcat.com/osu/?mod=json&q={query}&c=b&s=1,2,3,4&p={page}&m=&g=&l="))
+            .Content.ReadAsStringAsync();
+
+            JArray beatmaps = JArray.Parse(json);
+            JArray beatmaps_patched = new JArray();
+
+            for (int i = beatmaps.Count - 1; i >= 0; i--)
+            {
+                JToken beatmap = beatmaps[i];
+
+                IEnumerable<DL> dls = _dls.FindAll(x => x.Beatmapset_Id == int.Parse((string)beatmap["id"]));
+
+                HashSet<int> mods = new HashSet<int>();
+
+                var childs = beatmap["beatmaps"];
+                foreach (var child in childs)
+                    mods.Add( child["mode"].Value<int>() );
+
+                JObject beatmap_patched = new JObject
+                {
+                    { "artist", beatmap["artist"] },
+                    { "author", beatmap["creator"] },
+                    { "title", beatmap["title"] },
+                    { "id", beatmap["id"] },
+                    { "modes", JArray.FromObject(mods) },
                     { "status", beatmap["status"] },
                     { "dl_status", dls.Count() != 0 && dls.First().Status != DLStatus.Stopped ? JToken.Parse(JsonConvert.SerializeObject(dls.First())) : JToken.Parse("null")}
                 };
@@ -320,7 +326,9 @@ namespace ORB4
             _listSemaphore.Release();
 
             if (dl == null || dl.Count == 0)
+            {
                 return 404;
+            }
             else
             {
                 try
@@ -328,9 +336,10 @@ namespace ORB4
                     Process.Start(_path + dl[0].Id.ToString() + ".osz");
                     return 200;
                 }
-                catch {
+                catch
+                {
                     return 500;
-                } 
+                }
             }
         }
 
@@ -351,7 +360,9 @@ namespace ORB4
             dl.holdingSemaphore = true;
 
             if (dl.Status == DLStatus.Stopped)
+            {
                 return;
+            }
 
             dl.Status = DLStatus.Downloading;
             int retries = 5;
@@ -362,9 +373,10 @@ namespace ORB4
                 try
                 {
                     HttpWebRequest request = (HttpWebRequest)WebRequest.Create(new Uri(dl.Url));
+                    request.UserAgent = $"ORB ({Engine.Version})";
                     WebResponse response = request.GetResponse();
 
-                    string nextBeatmapPath = Utils.GetOsuPath() + "\\Songs\\" + dl.Beatmapset_Id.ToString() + ".osz";
+                    string nextBeatmapPath = Utils.GetOsuPath() + "\\Songs\\" + dl.Beatmapset_Id.ToString() + "_orb" + ".osz";
 
                     using (FileStream fs = File.Create(_path + dl.Beatmapset_Id.ToString() + ".osz"))
                     {
@@ -380,7 +392,11 @@ namespace ORB4
                                     ns.Dispose();
 
                                     File.Delete(_path + dl.Beatmapset_Id.ToString() + ".osz");
-                                    if (dl.holdingSemaphore) _dlSemaphore.Release();
+                                    if (dl.holdingSemaphore)
+                                    {
+                                        _dlSemaphore.Release();
+                                    }
+
                                     dl.holdingSemaphore = false;
                                     return;
                                 }
@@ -399,14 +415,28 @@ namespace ORB4
 
                             dl.Status = DLStatus.Success;
                             SyncAlreadyDownloaded();
-                            if (_engine.LocalSettings.SoundEffects) Utils.PlayWavAsync(Properties.Resources.Downloaded);
-                            if (dl.holdingSemaphore) _dlSemaphore.Release();
+                            if (_engine.LocalSettings.SoundEffects)
+                            {
+                                Utils.PlayWavAsync(Properties.Resources.Downloaded);
+                            }
+
+                            if (dl.holdingSemaphore)
+                            {
+                                _dlSemaphore.Release();
+                            }
+
                             dl.holdingSemaphore = false;
                         }
                     }
 
+                    if (File.Exists(nextBeatmapPath))
+                    {
+                        File.Delete(nextBeatmapPath);
+                    }
+
                     File.Move(_path + dl.Beatmapset_Id.ToString() + ".osz", nextBeatmapPath);
-                } catch (Exception e)
+                }
+                catch (Exception e)
                 {
                     Logger.MainLogger.Log(Logger.LogTypes.Error, e.ToString());
                     if (retries > 0)
@@ -417,7 +447,11 @@ namespace ORB4
                     else
                     {
                         dl.Status = DLStatus.Error;
-                        if (dl.holdingSemaphore) _dlSemaphore.Release();
+                        if (dl.holdingSemaphore)
+                        {
+                            _dlSemaphore.Release();
+                        }
+
                         dl.holdingSemaphore = false;
                     }
                 }
@@ -440,7 +474,11 @@ namespace ORB4
                 _listSemaphore.Release();
 
                 Logger.MainLogger.Log(Logger.LogTypes.Error, e);
-                if (dl.holdingSemaphore) _dlSemaphore.Release();
+                if (dl.holdingSemaphore)
+                {
+                    _dlSemaphore.Release();
+                }
+
                 dl.holdingSemaphore = false;
                 return;
             }
@@ -458,14 +496,17 @@ namespace ORB4
 
             try
             {
-                _dls.RemoveAll(x => {
+                _dls.RemoveAll(x =>
+                {
                     if (x.F)
                     {
                         dl_c--;
                         return true;
                     }
                     else
+                    {
                         return false;
+                    }
                 });
                 _osuDb = osu_database_reader.BinaryFiles.OsuDb.Read(Utils.GetOsuPath() + "\\osu!.db");
                 foreach (var beatmap in _osuDb.Beatmaps)
@@ -483,13 +524,14 @@ namespace ORB4
                         dl_c++;
                     }
                 }
-            } catch (Exception e)
+            }
+            catch (Exception e)
             {
                 Logger.MainLogger.Log(Logger.LogTypes.Error, e);
                 _dbSemaphore.Release(); return;
             }
             _dbSemaphore.Release();
-            
+
         }
 
         public BeatmapDownloader(ref Engine engine)

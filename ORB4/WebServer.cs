@@ -43,7 +43,7 @@ namespace ORB4
         {
             _thumbnailsSemaphore = new System.Threading.SemaphoreSlim(4,4);
             _listener = new HttpListener();
-            Engine = new Engine() { ApiKey = "", LocalSettings = ORB4.Engine.Settings.Load() };
+            Engine = new Engine() { LocalSettings = ORB4.Engine.Settings.Load() };
             BeatmapDownloader = new BeatmapDownloader(ref Engine);
 
             Token = Guid.NewGuid().ToByteArray();
@@ -78,7 +78,17 @@ namespace ORB4
                 { "/css/svg/downloader-bracket-icon.svg", new HtmlResource(23, "image/svg+xml") },
                 { "/progressbar.js", new HtmlResource(24, "application/javascript") },
                 { "/html/list_dl.html", new HtmlResource(25, "text/html") },
-                { "/token_helper.js", new HtmlResource(27, "application/javascript") },
+                { "/preview_player.js", new HtmlResource(27, "application/javascript") },
+                { "/css/standard_mode.png", new HtmlResource(30, "image/png") },
+                { "/css/taiko_mode.png", new HtmlResource(31, "image/png") },
+                { "/css/ctb_mode.png", new HtmlResource(32, "image/png") },
+                { "/css/mania_mode.png", new HtmlResource(33, "image/png") },
+                { "/css/standard_mode_light.png", new HtmlResource(40, "image/png") },
+                { "/css/taiko_mode_light.png", new HtmlResource(41, "image/png") },
+                { "/css/ctb_mode_light.png", new HtmlResource(42, "image/png") },
+                { "/css/mania_mode_light.png", new HtmlResource(43, "image/png") },
+                { "/css/preview_stop.png", new HtmlResource(50, "image/png") },
+                { "/css/preview_play.png", new HtmlResource(51, "image/png") },
             };
         }
 
@@ -139,6 +149,13 @@ namespace ORB4
                 {
                     switch (context.Request.RawUrl)
                     {
+                        case "/utils/login_form":
+                            new LoginWindowLight().ShowDialog();
+                            context.Response.StatusCode = 200;
+                            context.Response.ContentType = "text/plain";
+                            await context.Response.OutputStream.WriteAsync(new byte[] { }, 0, 0);
+                            context.Response.OutputStream.Close();
+                            break;
                         case "/engine/start":
                             Engine.Start();
                             context.Response.StatusCode = 200;
@@ -154,7 +171,7 @@ namespace ORB4
 
                             string statusd = Engine.GetStatus();
 
-                            if (!Engine.LocalSettings.AutoOpen && Engine.FoundCurrentSearch > 0)
+                            if ((!Engine.LocalSettings.AutoOpen || Engine.LocalSettings.OpenInDownloader) && Engine.FoundCurrentSearch > 0)
                             {
                                 bytes = Encoding.UTF8.GetBytes("Beatmaps_viewer");
                             }
@@ -447,6 +464,27 @@ namespace ORB4
                                 await context.Response.OutputStream.WriteAsync(new byte[] { }, 0, 0);
                                 context.Response.OutputStream.Close();
                             }
+                            else if (context.Request.RawUrl.Contains("/downloader/search_unranked"))
+                            {
+                                string query = context.Request.QueryString["query"];
+                                string page = "1";
+
+                                try
+                                {
+                                    page = context.Request.QueryString["page"];
+                                }
+                                catch { }
+
+                                bytes = Encoding.UTF8.GetBytes(
+                                    await BeatmapDownloader.SearchUnranked(query, int.Parse(page)));
+
+                                context.Response.StatusCode = 200;
+                                context.Response.ContentType = "application/json";
+
+                                await context.Response.OutputStream.WriteAsync(bytes, 0, bytes.Length);
+                                context.Response.OutputStream.Close();
+                                return;
+                            }
                             else if (context.Request.RawUrl.Contains("/downloader/search"))
                             {
                                 string query = context.Request.QueryString["query"];
@@ -595,6 +633,7 @@ namespace ORB4
                 new JObject() { { "id", "ripple" }, { "checked", Engine.LocalSettings.Ripple.ToString().ToLower() } },
                 new JObject() { { "id", "night_mode" }, { "checked", Engine.LocalSettings.NightMode.ToString().ToLower() } },
                 new JObject() { { "id", "new_beatmaps" }, { "checked", Engine.LocalSettings.NewBeatmapsB.ToString().ToLower()  } },
+                new JObject() { { "id", "open_in_downloader" }, { "checked", Engine.LocalSettings.OpenInDownloader.ToString().ToLower()  } },
             };
 
             var modes = Enum.GetValues(typeof(Engine.Modes)).Cast<Engine.Modes>().ToArray();
@@ -679,6 +718,7 @@ namespace ORB4
                     break;
                 case "auto_open":
                     Engine.LocalSettings.AutoOpen = bool.Parse(check);
+                    if (Engine.LocalSettings.OpenInDownloader) Engine.LocalSettings.OpenInDownloader = false;
                     break;
                 case "open_in_game":
                     Engine.LocalSettings.OpenInGame = bool.Parse(check);
@@ -760,6 +800,10 @@ namespace ORB4
                     break;
                 case "night_mode":
                     Engine.LocalSettings.NightMode = bool.Parse(check);
+                    break;
+                case "open_in_downloader":
+                    Engine.LocalSettings.OpenInDownloader = bool.Parse(check);
+                    if (Engine.LocalSettings.AutoOpen) Engine.LocalSettings.AutoOpen = false;
                     break;
                 default:
                     break;

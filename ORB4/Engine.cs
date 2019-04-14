@@ -23,7 +23,7 @@ namespace ORB4
             Hexide, Bloodcat 
         }
 
-        public const string Version = "4.2.1T";
+        public const string Version = "4.2.2T";
 
         public const int MaxRequestsPerMinute = 350;
 
@@ -543,13 +543,22 @@ namespace ORB4
             public bool AnyBPM { get; set; } = true;
             public bool NightMode { get; set; } = false;
 
+
             public static Settings Load()
             {
                 try
                 {
                     string AppData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
                     if (System.IO.File.Exists($"{AppData}\\ORB\\Private\\Settings"))
-                        return JsonConvert.DeserializeObject<Settings>(System.IO.File.ReadAllText($"{AppData}\\ORB\\Private\\Settings"));
+                    {
+                        var settings = JsonConvert.DeserializeObject<Settings>(System.IO.File.ReadAllText($"{AppData}\\ORB\\Private\\Settings"));
+
+                        if (settings.OpenInDownloader && settings.AutoOpen) {
+                            settings.OpenInDownloader = false; settings.AutoOpen = false;
+                        }
+
+                        return settings;
+                    }
                     else
                         return new Settings();
                 }
@@ -571,11 +580,14 @@ namespace ORB4
             public bool AutoOpen { get; set; } = true;
             public bool SoundEffects { get; set; } = true;
             public bool OpenInGame { get; set; } = false;
+            public bool OpenInDownloader { get; set; } = false;
 
             public DownloadMirrors Mirror { get; set; } = DownloadMirrors.Bloodcat;
         }
 
         public List<int> _processedBeatmaps = new List<int>();
+
+        public int LastBeatmapFound;
 
         private async Task ProcessBeatmaps()
         {
@@ -631,6 +643,8 @@ namespace ORB4
 
                         if (diff && length && mode && genre && ranking && (oldB || newB) && bpm)
                         {
+                            LastBeatmapFound = beatmap.BeatmapsetId;
+
                             if (LocalSettings.AutoOpen)
                             {
                                 if (Running)
@@ -639,7 +653,7 @@ namespace ORB4
                                         Process.Start($"osu://b/{beatmap.BeatmapId}");
                                     else
                                     {
-                                       if (!LocalSettings.Ripple)
+                                        if (!LocalSettings.Ripple)
                                             Process.Start($"https://osu.ppy.sh/b/{beatmap.BeatmapId}");
                                         else
                                             Process.Start($"https://ripple.moe/b/{beatmap.BeatmapId}");
@@ -669,6 +683,40 @@ namespace ORB4
                                     {
                                         _lovedCache.WriteBeatmaps(new Beatmap[] { beatmap });
                                     }
+
+                                    Stop();
+                                    break;
+                                }
+                            }
+                            else if (LocalSettings.OpenInDownloader)
+                            {
+                                if (Running)
+                                {
+                                    if (LocalSettings.SoundEffects)
+                                    {
+                                        if ((int)beatmap.RankStatus > 0 && (int)beatmap.RankStatus < 4)
+                                        {
+                                            Utils.PlayWavAsync(Properties.Resources.Found);
+                                        }
+                                    }
+
+#pragma warning disable CS4014
+                                    ThumbnailDownloader.MainThumbnailDownloader.DownloadThumbnailAsync(beatmap.BeatmapsetId);
+#pragma warning restore CS4014 
+
+                                    if ((int)beatmap.RankStatus <= 0)
+                                    {
+                                        _unrankedCache.WriteBeatmaps(new Beatmap[] { beatmap });
+                                    }
+                                    else if ((int)beatmap.RankStatus > 0 && (int)beatmap.RankStatus < 4)
+                                    {
+                                        _rankedCache.WriteBeatmaps(new Beatmap[] { beatmap });
+                                    }
+                                    else if ((int)beatmap.RankStatus == 4)
+                                    {
+                                        _lovedCache.WriteBeatmaps(new Beatmap[] { beatmap });
+                                    }
+
 
                                     Stop();
                                     break;
@@ -722,7 +770,13 @@ namespace ORB4
         public string GetStatus()
         {
             if (!Running)
+            {
+                if (LastBeatmapFound != int.MinValue && LocalSettings.OpenInDownloader) {
+                    return $"Show_Downloader {LastBeatmapFound}";
+                }
+
                 return "Stopped";
+            }
 
             if (_foundCount > 0)
             {
@@ -983,7 +1037,7 @@ namespace ORB4
         }
 
         public Settings LocalSettings { get; set; } = new Settings();
-        public string ApiKey { get; set; }
+        public static string ApiKey { get; set; }
 
         public int FoundCurrentSearch {
             get
@@ -994,6 +1048,8 @@ namespace ORB4
 
         public void Start()
         {
+            LastBeatmapFound = int.MinValue;
+
             _errorNotified = false;
 
             if (!LocalSettings.OldBeatmapsB && !LocalSettings.NewBeatmapsB)
@@ -1015,7 +1071,7 @@ namespace ORB4
 
             _tasks.Clear();
 
-            if (LocalSettings.AutoOpen)
+            if (LocalSettings.AutoOpen || LocalSettings.OpenInDownloader)
                 Threads = 8;
             else
                 Threads = 2;

@@ -32,10 +32,9 @@
                 return;
 
             if (document.getElementById("beatmapDownloaderFrame") == null) {
-
                 if (canPlaySound)
                     playSound("Click");
-
+                
                 downloaderFrame = document.createElement("iframe");
                 downloaderFrame.src = "./beatmap_downloader.html";
                 downloaderFrame.className = "window";
@@ -56,6 +55,7 @@
                     setTimeout(function () {
                         downloaderFrame.style.left = "0";
                         downloaderFrame.style.opacity = 1;
+                        downloaderFrame.focus();
                     }, 10);
 
                     setTimeout(function () {
@@ -166,6 +166,8 @@
                 search();
             } else if (e.keyCode == 66) {
                 openBeatmaps(true);
+            } else if (e.keyCode == 68) {
+                openDownloader(true);
             }
         });
 
@@ -235,6 +237,7 @@
                     setTimeout(function () {
                         settingsFrame.style.left = "60vw";
                         settingsFrame.style.opacity = 1;
+                        settingsFrame.focus();
                     }, 10);
 
                     setTimeout(function () {
@@ -304,12 +307,12 @@
                 beatmapsFrameTimeout = true;
 
                 beatmapsFrame.onload = function () {
-
                     setUI(getUIMode(), beatmapsFrame);
 
                     setTimeout(function () {
                         beatmapsFrame.style.left = "0";
                         beatmapsFrame.style.opacity = 1;
+                        beatmapsFrame.focus();
                     }, 10);
 
                     setTimeout(function () {
@@ -355,10 +358,15 @@
                             request2.open("GET", "/engine/status", false);
                             request2.send();
 
-                            if (request2.responseText != "Stopped") {
+                            if (request2.responseText != "Stopped" && !request2.responseText.startsWith("Show_Downloader")) {
                                 document.getElementById("circleButtonLabel").innerHTML = request2.responseText;
                             }
                             else {
+                                var str_a = request2.responseText.split(' ');
+                                if (str_a[0] == 'Show_Downloader'){
+                                    openDownloader(true, `https://osu.ppy.sh/s/${str_a[1]}`, true);
+                                }
+                                
                                 foundBeatmap();
                             }
                         }, 500);
@@ -405,7 +413,6 @@
                 onmousedown="circleButtonClick(event)">Searching</span>
         </div>
     </div>
-    <script src="/token_helper.js"></script>
 </body>
 
 </html>

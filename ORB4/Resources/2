@@ -12,6 +12,11 @@ body {
     height: 100vh;
 }
 
+.normal-text{
+    color: black;
+    font-size: 16px;
+}
+
 .download-progressbar{
   margin: 12px;
   width: 50px;
@@ -60,6 +65,15 @@ input[type=number] {
     overflow: hidden !important;
 }
 
+.beatmap-panel-information-mode {
+    height: 100%;
+    width: 40px;
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+    margin-right: 10px;
+}
+
 .beatmap-panel-mirror {
 	width: 0;
     transition: .5s;
@@ -91,6 +105,19 @@ input[type=number] {
     vertical-align: top;
     background-position: center;
     background-size: cover;
+}
+
+.beatmap-panel-preview {
+    /* background-image: url(/css/preview_play.png); */
+    width: 100%;
+    height: 100%;
+    background-size: contain;
+}
+
+.beatmap-panel-preview:hover {
+    width: 100%;
+    height: 100%;
+    background-image: url(/css/preview_play.png);
 }
 
 .beatmap-panel{
@@ -512,3 +539,4 @@ hr {
 .no-transition{
 	transition: none;
 }
+

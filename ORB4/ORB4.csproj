@@ -60,6 +60,7 @@
     <PlatformTarget>x86</PlatformTarget>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <Prefer32Bit>true</Prefer32Bit>
+    <DefineConstants>DEBUG</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
     <OutputPath>bin\x86\Release\</OutputPath>
@@ -104,6 +105,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="APIKeyGrabber.cs" />
     <Compile Include="BeatmapDownloader.cs" />
     <Compile Include="Engine.cs" />
     <Compile Include="ExportFormat.cs" />
@@ -111,6 +113,12 @@
     <Compile Include="ExportFormats\OsuSync.cs" />
     <Compile Include="ExportFormats\TextFile.cs" />
     <Compile Include="Logger.cs" />
+    <Compile Include="LoginWindowLight.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="LoginWindowLight.Designer.cs">
+      <DependentUpon>LoginWindowLight.cs</DependentUpon>
+    </Compile>
     <Compile Include="ThumbnailDownloader.cs" />
     <Compile Include="Utils.cs" />
     <Compile Include="WebServer.cs" />
@@ -120,6 +128,9 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="LoginWindowLight.resx">
+      <DependentUpon>LoginWindowLight.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="MainWindow.resx">
       <DependentUpon>MainWindow.cs</DependentUpon>
     </EmbeddedResource>
@@ -166,8 +177,18 @@
     <None Include="Resources\26" />
     <None Include="Resources\27" />
     <None Include="Resources\3" />
+    <None Include="Resources\30" />
+    <None Include="Resources\31" />
+    <None Include="Resources\32" />
+    <None Include="Resources\33" />
     <None Include="Resources\4" />
+    <None Include="Resources\40" />
+    <None Include="Resources\41" />
+    <None Include="Resources\42" />
+    <None Include="Resources\43" />
     <None Include="Resources\5" />
+    <None Include="Resources\50" />
+    <None Include="Resources\51" />
     <None Include="Resources\6" />
     <None Include="Resources\7" />
     <None Include="Resources\8" />

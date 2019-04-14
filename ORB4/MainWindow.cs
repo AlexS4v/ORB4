@@ -96,7 +96,7 @@ namespace ORB4
 
                 System.IO.File.WriteAllText($"{AppData}\\ORB\\Private\\Key", apikey);
             }
-            _engine.ApiKey = apikey;
+            Engine.ApiKey = apikey;
         }
     }
 
@@ -153,7 +153,7 @@ namespace ORB4
 
             if (System.IO.File.Exists($"{AppData}\\ORB\\Private\\Key"))
             {
-                _server.Engine.ApiKey = System.IO.File.ReadAllText($"{AppData}\\ORB\\Private\\Key");
+                Engine.ApiKey = System.IO.File.ReadAllText($"{AppData}\\ORB\\Private\\Key");
                 Logger.MainLogger.Log(Logger.LogTypes.Info, "APIKey.Load -> Success");
             }
 
@@ -219,7 +219,10 @@ namespace ORB4
         {
             if (e.IsBrowserInitialized)
             {
-                //_browser.ShowDevTools();
+#if DEBUG
+                _browser.ShowDevTools();
+#endif
+
                 Logger.MainLogger.Log(Logger.LogTypes.Info, "CookieManager.Initialize -> Success");
 
                 predW = this.Width;
@@ -229,7 +232,7 @@ namespace ORB4
             }
         }
 
-        int predW = 800;
+        int predW = 900;
         int predY = 600;
 
         public void FixZoom()

@@ -38,7 +38,7 @@ namespace ORB4
             this.BackColor = System.Drawing.Color.White;
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(800, 600);
+            this.ClientSize = new System.Drawing.Size(900, 600);
             this.Name = "MainWindow";
             this.Text = $"Osu! Random Beatmap - {Engine.Version}";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.OnClosing);
