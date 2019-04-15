@@ -11,21 +11,14 @@
 
 <body style="overflow-y: auto;">
     <script>
-        function openBeatmapset(x) {
-            var request = new XMLHttpRequest();
-            request.open("GET", `/utils/open_beatmapset?id=${x.parentNode.id}&b_id=${x.parentNode.getAttribute('b_id')}`, false);
-            request.send();
-        }
+        var loadingNewPage = false;
 
-        var updating = [];
-        window.onkeyup = function (ev) {
-            if (ev.keyCode == 27) {
-                closeFrame();
-            }
-        };
-
-        window.onscroll = function (ev) {
+        function onScroll(ev) {
             if (Math.round(window.innerHeight + window.scrollY + 1) >= document.body.scrollHeight) {
+                if (loadingNewPage){
+                    return;
+                }
+
                 if (searchRequest != undefined) {
                     searchRequest.abort();
                 }
@@ -39,12 +32,20 @@
                                 return;
                             else {
                                 array = JSON.parse(this.responseText);
+                                if (array.length == 0) {
+                                    window.onscroll = function() {};
+                                    return;
+                                } 
+
                                 searchUpdaters.forEach(timer => clearInterval(timer));
                                 searchUpdaters = [];
 
                                 var beatmaps = document.getElementById("beatmaps");
 
                                 for (let i = array.length - 1; i > -1; i--) {
+                                    if (!loadingNewPage)
+                                        break;
+                            
                                     const element = array[i];
 
                                     var parent = document.createElement('div');
@@ -194,6 +195,7 @@
                                         }
                                     }
                                 }
+                                loadingNewPage = false;
                             }
                         }, 10);
                         searchUpdaters.push(awaiter);
@@ -208,7 +210,26 @@
                 document.getElementById('searchField').value = tempQuery;
                 pageCount++;
                 searchRequest.send();
+                loadingNewPage = true;
+                
             }
+        }
+
+        function openBeatmapset(x) {
+            var request = new XMLHttpRequest();
+            request.open("GET", `/utils/open_beatmapset?id=${x.parentNode.id}&b_id=${x.parentNode.getAttribute('b_id')}`, false);
+            request.send();
+        }
+
+        var updating = [];
+        window.onkeyup = function (ev) {
+            if (ev.keyCode == 27) {
+                closeFrame();
+            }
+        };
+
+        window.onscroll = function (ev) {
+            onScroll(ev);
         };
 
         function updateProgressBar(bar, id, progress_status_helper, timer, dl_) {
@@ -444,6 +465,8 @@
         var tempQuery = '';
 
         function search(query, ignoreRanking = false) {
+            loadingNewPage = false;
+            window.onscroll = function(ev) {onScroll(ev);}
             tempQuery = query;
             pageCount = 0;
             updating.forEach(timer => clearInterval(timer));

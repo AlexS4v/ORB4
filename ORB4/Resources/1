@@ -70,7 +70,7 @@
         function openLogin(){
             setTimeout(function(){
                 var request = new XMLHttpRequest();
-                    request.open("GET", `/utils/login_form`, true);
+                    request.open("GET", `/utils/login_form`, false);
                     request.send();
                     updateSettings();
             }, 1);
@@ -125,7 +125,7 @@
         <input onchange="onChange(this)" id="api_key" type="password" style="width: 100px;">
     </div>
     <a class="settings-link" onclick="cSharpTools.openUrl('https://osu.ppy.sh/p/api');" href="#">Get your API key here.</a>
-    <a class="settings-link" onclick="openLogin();" href="#">Or click here to get it automatically.</a>
+    <a class="settings-link" onclick="openLogin();" href="#">Or log in.</a>
 
     <div class="setting" style="margin-top:15px">
         <div class="onoffswitch">
@@ -168,7 +168,7 @@
         </div> &nbsp;&nbsp;&nbsp;
         <div class="tooltip">
             New beatmaps
-            <span class="tooltiptext">After 2011</span>
+            <span style="bottom: -160%;" class="tooltiptext">After 2011</span>
         </div>
     </div>
 
@@ -496,7 +496,7 @@
         </div> &nbsp;&nbsp;&nbsp; Ripple
     </div>
 
-    <div style="margin-top:20px;padding-left: 25px; text-align: left;">Developed by Zusupe Team <br><br> This program is not affiliated with the game osu! <br><br> All credits to Dean Herbert.<br><br>The mirror used for the beatmap downloader is Bloodcat.</div>
+    <div style="margin-top:20px;padding-left: 25px; text-align: left;">Developed by Zusupe Team <br><br> This program is not affiliated with the game osu! <br><br> All credits to Dean Herbert.<br><br>The mirror used for the beatmap downloader is Bloodcat. <br><br> The program is released under <a onclick="cSharpTools.openUrl('https://github.com/AlexS4v/ORB4/blob/master/LICENSE');">MIT License</a></div>
 	<div style="width: 100%; height: 50px;"></div>
 
 	</div>

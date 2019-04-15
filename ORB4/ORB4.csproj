@@ -119,6 +119,12 @@
     <Compile Include="LoginWindowLight.Designer.cs">
       <DependentUpon>LoginWindowLight.cs</DependentUpon>
     </Compile>
+    <Compile Include="LoginWindowDark.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="LoginWindowDark.Designer.cs">
+      <DependentUpon>LoginWindowDark.cs</DependentUpon>
+    </Compile>
     <Compile Include="ThumbnailDownloader.cs" />
     <Compile Include="Utils.cs" />
     <Compile Include="WebServer.cs" />
@@ -130,6 +136,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <EmbeddedResource Include="LoginWindowLight.resx">
       <DependentUpon>LoginWindowLight.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="LoginWindowDark.resx">
+      <DependentUpon>LoginWindowDark.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="MainWindow.resx">
       <DependentUpon>MainWindow.cs</DependentUpon>

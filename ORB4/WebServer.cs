@@ -117,7 +117,13 @@ namespace ORB4
         }
 
         private async Task ProcessRequest(HttpListenerContext context)
-        {
+        {/*
+            <!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+            */
             try
             {
                 var cookie = context.Request.Cookies["token"];
@@ -137,7 +143,15 @@ namespace ORB4
                 if (_resources.Any(x => x.Key == context.Request.RawUrl))
                 {
                     HtmlResource resource = _resources.First(x => x.Key == context.Request.RawUrl).Value;
-                    byte[] bytes = (byte[])Properties.Resources.ResourceManager.GetObject($"_{resource.Id}");
+                    byte[] bytes = { };
+
+                    if (resource.Id == 0)
+                    {
+                        string data = $"<!DOCTYPE html>\r\n<html lang=\"en\">\r\n<head>\r\n<script>const version = \"{Engine.Version}\";</script>\r\n" + Encoding.UTF8.GetString((byte[])Properties.Resources.ResourceManager.GetObject($"_{resource.Id}")) ;
+                        bytes = Encoding.UTF8.GetBytes(data);
+                    }
+                    else
+                        bytes = (byte[])Properties.Resources.ResourceManager.GetObject($"_{resource.Id}");
 
                     context.Response.ContentLength64 = bytes.Length;
                     context.Response.ContentType = resource.Type;
@@ -150,7 +164,10 @@ namespace ORB4
                     switch (context.Request.RawUrl)
                     {
                         case "/utils/login_form":
-                            new LoginWindowLight().ShowDialog();
+                            if (!Engine.LocalSettings.NightMode)
+                                new LoginWindowLight().ShowDialog();
+                            else
+                                new LoginWindowDark().ShowDialog();
                             context.Response.StatusCode = 200;
                             context.Response.ContentType = "text/plain";
                             await context.Response.OutputStream.WriteAsync(new byte[] { }, 0, 0);
@@ -488,12 +505,16 @@ namespace ORB4
                             else if (context.Request.RawUrl.Contains("/downloader/search"))
                             {
                                 string query = context.Request.QueryString["query"];
-                                string page = "1";
+                                string page = "0";
 
                                 try
                                 {
                                     page = context.Request.QueryString["page"];
-                                } catch { }
+                                } catch {
+
+                                }
+
+                                if (page == null) page = "0";
 
                                 bytes = Encoding.UTF8.GetBytes(
                                     await BeatmapDownloader.Search(query, int.Parse(page)));

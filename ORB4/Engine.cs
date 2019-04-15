@@ -23,7 +23,7 @@ namespace ORB4
             Hexide, Bloodcat 
         }
 
-        public const string Version = "4.2.2T";
+        public const string Version = "4.2S";
 
         public const int MaxRequestsPerMinute = 350;
 
@@ -1037,7 +1037,8 @@ namespace ORB4
         }
 
         public Settings LocalSettings { get; set; } = new Settings();
-        public static string ApiKey { get; set; }
+        public static string ApiKey { get; set; } = string.Empty;
+
 
         public int FoundCurrentSearch {
             get

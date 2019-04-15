@@ -124,6 +124,7 @@ namespace ORB4
             _cefSettings.CefCommandLineArgs.Add("--disable-application-cache", "1");
             _cefSettings.CefCommandLineArgs.Add("--disable-session-storage", "1");
             _cefSettings.CefCommandLineArgs.Add("--disable-local-storage", "1");
+            _cefSettings.CefCommandLineArgs.Add("--disable-web-security", "1");
 
             if (System.IO.File.Exists($"{AppData}\\ORB\\cef.log"))
                 System.IO.File.Delete($"{AppData}\\ORB\\cef.log");

@@ -10,9 +10,9 @@ using System.Windows.Forms;
 
 namespace ORB4
 {
-    public partial class LoginWindowLight : Form
+    public partial class LoginWindowDark : Form
     {
-        public LoginWindowLight()
+        public LoginWindowDark()
         {
             InitializeComponent();
         }

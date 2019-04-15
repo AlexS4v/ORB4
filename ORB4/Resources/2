@@ -341,6 +341,12 @@ hr {
     opacity: 0;
 }
 
+
+a {
+	-webkit-user-drag: none; 
+	display: block;
+}
+
 .settings-link {
 	font-size: 12px; 
 	-webkit-user-drag: none; 

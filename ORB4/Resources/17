@@ -31,6 +31,28 @@ input[type=number]::-webkit-outer-spin-button {
     margin: 0;
 }
 
+
+a {
+	-webkit-user-drag: none; 
+	display: block;
+}
+
+a:link {
+	color: white;
+}
+
+a:visited {
+	color: white;
+}
+
+a:hover {
+	color: white;
+}
+
+a:active {
+	color: #7e96a7;
+}
+
 .settings-link:link {
 	color: white;
 }
