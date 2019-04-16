@@ -17,8 +17,3 @@ good-looking and with many useful function, such as an embedded downloader (ORB!
 
 - Optimize Javascript code.
 - Convert all Javascript functions to JQuery.
-
-## Warning
-
-ORB back-end is written in C#, while the front-end uses HTML, CSS3 and Javascript: you can find the source code in the resources directory.
-I did this "obfuscation" in order to not make the program files not editable by any one.
