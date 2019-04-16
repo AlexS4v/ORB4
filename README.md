@@ -11,7 +11,7 @@ good-looking and with many useful function, such as an embedded downloader (ORB!
 - [osu-database-reader](https://github.com/HoLLy-HaCKeR/osu-database-reader)
 - [ProgressBar.js](https://github.com/kimmobrunfeldt/progressbar.js)
 - [NAudio](https://github.com/naudio/NAudio)
-- [JQuery](https://github.com/kimmobrunfeldt/progressbar.js)
+- [JQuery](https://jquery.com/)
 
 ## To Do
 
