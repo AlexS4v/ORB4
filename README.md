@@ -15,6 +15,7 @@ good-looking and with many useful function, such as an embedded downloader (ORB!
 
 ## To Do
 
+- Optimize Javascript code.
 - Convert all Javascript functions to JQuery.
 
 ## Warning
