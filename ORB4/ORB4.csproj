@@ -125,6 +125,11 @@
     <Compile Include="LoginWindowDark.Designer.cs">
       <DependentUpon>LoginWindowDark.cs</DependentUpon>
     </Compile>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
     <Compile Include="ThumbnailDownloader.cs" />
     <Compile Include="Utils.cs" />
     <Compile Include="WebServer.cs" />
@@ -145,14 +150,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <Compile Include="Properties\Resources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Resources.resx</DependentUpon>
-      <DesignTime>True</DesignTime>
-    </Compile>
     <None Include="app.manifest" />
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
@@ -164,44 +164,6 @@
       <DependentUpon>Settings.settings</DependentUpon>
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
     </Compile>
-    <None Include="Resources\0" />
-    <None Include="Resources\1" />
-    <None Include="Resources\10" />
-    <None Include="Resources\11" />
-    <None Include="Resources\12" />
-    <None Include="Resources\13" />
-    <None Include="Resources\14" />
-    <None Include="Resources\15" />
-    <None Include="Resources\16" />
-    <None Include="Resources\17" />
-    <None Include="Resources\18" />
-    <None Include="Resources\19" />
-    <None Include="Resources\2" />
-    <None Include="Resources\20" />
-    <None Include="Resources\21" />
-    <None Include="Resources\22" />
-    <None Include="Resources\23" />
-    <None Include="Resources\24" />
-    <None Include="Resources\25" />
-    <None Include="Resources\26" />
-    <None Include="Resources\27" />
-    <None Include="Resources\3" />
-    <None Include="Resources\30" />
-    <None Include="Resources\31" />
-    <None Include="Resources\32" />
-    <None Include="Resources\33" />
-    <None Include="Resources\4" />
-    <None Include="Resources\40" />
-    <None Include="Resources\41" />
-    <None Include="Resources\42" />
-    <None Include="Resources\43" />
-    <None Include="Resources\5" />
-    <None Include="Resources\50" />
-    <None Include="Resources\51" />
-    <None Include="Resources\6" />
-    <None Include="Resources\7" />
-    <None Include="Resources\8" />
-    <None Include="Resources\9" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config">
@@ -224,11 +186,49 @@
     <None Include="orb.ico" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\Downloaded" />
+    <None Include="Resources\4.ttf" />
+    <None Include="Resources\5.ttf" />
+    <None Include="Resources\6.ttf" />
     <None Include="Resources\Main.ico" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Main.ico" />
+    <Content Include="Resources\0.html" />
+    <Content Include="Resources\1.html" />
+    <Content Include="Resources\10.html" />
+    <Content Include="Resources\11.svg" />
+    <Content Include="Resources\12.js" />
+    <Content Include="Resources\13.jpeg" />
+    <Content Include="Resources\14.gif" />
+    <Content Include="Resources\15.svg" />
+    <Content Include="Resources\16.svg" />
+    <Content Include="Resources\17.css" />
+    <Content Include="Resources\18.css" />
+    <Content Include="Resources\19.gif" />
+    <Content Include="Resources\2.css" />
+    <Content Include="Resources\20.html" />
+    <Content Include="Resources\21.html" />
+    <Content Include="Resources\22.svg" />
+    <Content Include="Resources\23.svg" />
+    <Content Include="Resources\24.js" />
+    <Content Include="Resources\25.html" />
+    <Content Include="Resources\26.wav" />
+    <Content Include="Resources\27.js" />
+    <Content Include="Resources\3.svg" />
+    <Content Include="Resources\30.png" />
+    <Content Include="Resources\31.png" />
+    <Content Include="Resources\32.png" />
+    <Content Include="Resources\33.png" />
+    <Content Include="Resources\40.png" />
+    <Content Include="Resources\41.png" />
+    <Content Include="Resources\42.png" />
+    <Content Include="Resources\43.png" />
+    <Content Include="Resources\50.png" />
+    <Content Include="Resources\51.png" />
+    <Content Include="Resources\60.wav" />
+    <Content Include="Resources\7.wav" />
+    <Content Include="Resources\8.wav" />
+    <Content Include="Resources\9.wav" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
