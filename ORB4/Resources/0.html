@@ -328,9 +328,9 @@
                     }, 10);
 
                     setTimeout(function () {
-                        settingsFrameTimeout = false;
                         beatmapsFrame.style.transition = "0ms ease-in-out";
                         beatmapsFrameTimeout = false;
+                        beatmapsFrame.contentWindow.onStart();
                     }, 760);
 
                 };

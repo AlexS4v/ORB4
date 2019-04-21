@@ -214,6 +214,9 @@ namespace ORB4
                 HashSet<int> mods = new HashSet<int>();
 
                 var childs = beatmap["beatmaps"];
+
+                int b_id = childs[0]["id"].Value<int>();
+
                 foreach (var child in childs)
                     mods.Add(child["mode"].Value<int>());
 
@@ -225,6 +228,7 @@ namespace ORB4
                     { "id", beatmap["id"] },
                     { "modes", JArray.FromObject(mods) },
                     { "status", beatmap["status"] },
+                    { "b_id", b_id.ToString() },
                     { "dl_status", dls.Count() != 0 && dls.First().Status != DLStatus.Stopped ? JToken.Parse(JsonConvert.SerializeObject(dls.First())) : JToken.Parse("null")}
                 };
 
@@ -258,8 +262,11 @@ namespace ORB4
                 HashSet<int> mods = new HashSet<int>();
 
                 var childs = beatmap["beatmaps"];
+
+                int b_id = childs[0]["id"].Value<int>();
+
                 foreach (var child in childs)
-                    mods.Add( child["mode"].Value<int>() );
+                    mods.Add(child["mode"].Value<int>());
 
                 JObject beatmap_patched = new JObject
                 {
@@ -269,6 +276,7 @@ namespace ORB4
                     { "id", beatmap["id"] },
                     { "modes", JArray.FromObject(mods) },
                     { "status", beatmap["status"] },
+                    { "b_id", b_id.ToString() },
                     { "dl_status", dls.Count() != 0 && dls.First().Status != DLStatus.Stopped ? JToken.Parse(JsonConvert.SerializeObject(dls.First())) : JToken.Parse("null")}
                 };
 

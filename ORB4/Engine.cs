@@ -1,17 +1,16 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Schema;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
-using Newtonsoft.Json.Linq;
-using Newtonsoft.Json.Schema;
-using System.IO;
 using static System.BitConverter;
 
 namespace ORB4
@@ -20,14 +19,16 @@ namespace ORB4
     {
         public enum DownloadMirrors
         {
-            Hexide, Bloodcat 
+            Hexide, Bloodcat
         }
 
         public const string Version = "4.2S";
 
-        public const int MaxRequestsPerMinute = 350;
+        public const int MaxRequestsPerMinuteBancho = 60;
+        public const int MaxRequestsPerMinuteRipple = 350;
 
-        private int _requestsCount = 0;
+        private int _requestsCountBancho = 0;
+        private int _requestsCountRipple = 0;
 
         private Queue<Beatmap> _downloadedBeatmaps = new Queue<Beatmap>();
 
@@ -171,7 +172,10 @@ namespace ORB4
 
                 var hashedInputStringBuilder = new System.Text.StringBuilder(128);
                 foreach (var b in hashedInputBytes)
+                {
                     hashedInputStringBuilder.Append(b.ToString("X2"));
+                }
+
                 return hashedInputStringBuilder.ToString().ToLower();
             }
         }
@@ -231,7 +235,9 @@ namespace ORB4
             public BeatmapsCache(string path, Engine engine)
             {
                 if (System.IO.File.Exists(path))
+                {
                     System.IO.File.Delete(path);
+                }
 
                 Engine = engine;
 
@@ -321,7 +327,9 @@ namespace ORB4
                                 });
                         }
                         else
+                        {
                             _stream.Position += size;
+                        }
                     }
 
                     return array.ToString(Formatting.None);
@@ -359,7 +367,9 @@ namespace ORB4
                             };
                         }
                         else
+                        {
                             _stream.Position += size;
+                        }
                     }
 
                     return beatmaps;
@@ -416,7 +426,7 @@ namespace ORB4
                         _stream.Position = 0;
                         int count = ToInt32(ReadBytes(4), 0);
                         _stream.Position = 0;
-                        WriteBytes(GetBytes((Int32)(beatmaps.Length + count)));
+                        WriteBytes(GetBytes(beatmaps.Length + count));
                         _stream.Position = previousPos;
                     }
 
@@ -453,7 +463,9 @@ namespace ORB4
             public void Dispose()
             {
                 if (_stream.CanRead || _stream.CanWrite || _stream.CanSeek)
+                {
                     _stream.Close();
+                }
 
                 File.Delete(Path);
             }
@@ -497,8 +509,10 @@ namespace ORB4
             }
         }
 
-        public bool Ripple {
-            get {
+        public bool Ripple
+        {
+            get
+            {
                 return LocalSettings.Ripple;
             }
         }
@@ -512,15 +526,21 @@ namespace ORB4
             {
                 this.RankStatus = new HashSet<Engine.RankStatus>();
                 foreach (var rank in RankStatus)
+                {
                     this.RankStatus.Add((Engine.RankStatus)rank);
+                }
 
                 this.Modes = new HashSet<Engine.Modes>();
                 foreach (var mode in Modes)
+                {
                     this.Modes.Add((Engine.Modes)mode);
+                }
 
                 this.Genres = new HashSet<Engine.Genres>();
                 foreach (var genre in Genres)
+                {
                     this.Genres.Add((Engine.Genres)genre);
+                }
             }
 
             public HashSet<RankStatus> RankStatus { get; set; } = new HashSet<Engine.RankStatus> { Engine.RankStatus.Approved,
@@ -553,14 +573,17 @@ namespace ORB4
                     {
                         var settings = JsonConvert.DeserializeObject<Settings>(System.IO.File.ReadAllText($"{AppData}\\ORB\\Private\\Settings"));
 
-                        if (settings.OpenInDownloader && settings.AutoOpen) {
+                        if (settings.OpenInDownloader && settings.AutoOpen)
+                        {
                             settings.OpenInDownloader = false; settings.AutoOpen = false;
                         }
 
                         return settings;
                     }
                     else
+                    {
                         return new Settings();
+                    }
                 }
                 catch
                 {
@@ -572,7 +595,9 @@ namespace ORB4
             {
                 string AppData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
                 if (!System.IO.Directory.Exists($"{AppData}\\ORB\\Private\\"))
+                {
                     System.IO.Directory.CreateDirectory($"{AppData}\\ORB\\Private\\");
+                }
 
                 System.IO.File.WriteAllText($"{AppData}\\ORB\\Private\\Settings", Newtonsoft.Json.JsonConvert.SerializeObject(this));
             }
@@ -604,7 +629,9 @@ namespace ORB4
                     }
 
                     if (_invalidApiKey)
+                    {
                         continue;
+                    }
 
                     while (_downloadedBeatmaps.Count > 0)
                     {
@@ -626,20 +653,28 @@ namespace ORB4
                         bool genre = LocalSettings.Genres.Any(x => x == beatmap.Genre) || LocalSettings.Genres.Count == 0;
 
                         if (LocalSettings.Ripple)
+                        {
                             genre = true;
+                        }
 
                         bool ranking = LocalSettings.RankStatus.Any(x => x == beatmap.RankStatus);
                         bool oldB = LocalSettings.OldBeatmapsB ? update_date.Year <= 2011 : false;
                         bool newB = LocalSettings.NewBeatmapsB ? update_date.Year > 2011 : false;
 
                         if (LocalSettings.AnyDifficulty)
+                        {
                             diff = true;
+                        }
 
                         if (LocalSettings.AnyLength)
+                        {
                             length = true;
+                        }
 
                         if (LocalSettings.AnyBPM)
+                        {
                             bpm = true;
+                        }
 
                         if (diff && length && mode && genre && ranking && (oldB || newB) && bpm)
                         {
@@ -650,18 +685,24 @@ namespace ORB4
                                 if (Running)
                                 {
                                     if (LocalSettings.OpenInGame)
+                                    {
                                         Process.Start($"osu://b/{beatmap.BeatmapId}");
+                                    }
                                     else
                                     {
                                         if (!LocalSettings.Ripple)
+                                        {
                                             Process.Start($"https://osu.ppy.sh/b/{beatmap.BeatmapId}");
+                                        }
                                         else
+                                        {
                                             Process.Start($"https://ripple.moe/b/{beatmap.BeatmapId}");
+                                        }
                                     }
 
                                     if (LocalSettings.SoundEffects)
                                     {
-                                        if ((int)beatmap.RankStatus > 0 && (int)beatmap.RankStatus < 4)
+                                        if (beatmap.RankStatus > 0 && (int)beatmap.RankStatus < 4)
                                         {
                                             Utils.PlayWavAsync(Properties.Resources.Found);
                                         }
@@ -671,11 +712,11 @@ namespace ORB4
                                     ThumbnailDownloader.MainThumbnailDownloader.DownloadThumbnailAsync(beatmap.BeatmapsetId);
 #pragma warning restore CS4014 
 
-                                    if ((int)beatmap.RankStatus <= 0)
+                                    if (beatmap.RankStatus <= 0)
                                     {
                                         _unrankedCache.WriteBeatmaps(new Beatmap[] { beatmap });
                                     }
-                                    else if ((int)beatmap.RankStatus > 0 && (int)beatmap.RankStatus < 4)
+                                    else if (beatmap.RankStatus > 0 && (int)beatmap.RankStatus < 4)
                                     {
                                         _rankedCache.WriteBeatmaps(new Beatmap[] { beatmap });
                                     }
@@ -694,7 +735,7 @@ namespace ORB4
                                 {
                                     if (LocalSettings.SoundEffects)
                                     {
-                                        if ((int)beatmap.RankStatus > 0 && (int)beatmap.RankStatus < 4)
+                                        if (beatmap.RankStatus > 0 && (int)beatmap.RankStatus < 4)
                                         {
                                             Utils.PlayWavAsync(Properties.Resources.Found);
                                         }
@@ -704,11 +745,11 @@ namespace ORB4
                                     ThumbnailDownloader.MainThumbnailDownloader.DownloadThumbnailAsync(beatmap.BeatmapsetId);
 #pragma warning restore CS4014 
 
-                                    if ((int)beatmap.RankStatus <= 0)
+                                    if (beatmap.RankStatus <= 0)
                                     {
                                         _unrankedCache.WriteBeatmaps(new Beatmap[] { beatmap });
                                     }
-                                    else if ((int)beatmap.RankStatus > 0 && (int)beatmap.RankStatus < 4)
+                                    else if (beatmap.RankStatus > 0 && (int)beatmap.RankStatus < 4)
                                     {
                                         _rankedCache.WriteBeatmaps(new Beatmap[] { beatmap });
                                     }
@@ -733,11 +774,11 @@ namespace ORB4
                                 ThumbnailDownloader.MainThumbnailDownloader.DownloadThumbnailAsync(beatmap.BeatmapsetId);
 #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
 
-                                if ((int)beatmap.RankStatus <= 0)
+                                if (beatmap.RankStatus <= 0)
                                 {
                                     _unrankedCache.WriteBeatmaps(new Beatmap[] { beatmap });
                                 }
-                                else if ((int)beatmap.RankStatus > 0 && (int)beatmap.RankStatus < 4)
+                                else if (beatmap.RankStatus > 0 && (int)beatmap.RankStatus < 4)
                                 {
                                     _rankedCache.WriteBeatmaps(new Beatmap[] { beatmap });
                                 }
@@ -748,7 +789,7 @@ namespace ORB4
 
                                 if (LocalSettings.SoundEffects)
                                 {
-                                    if ((int)beatmap.RankStatus > 0 && (int)beatmap.RankStatus < 4)
+                                    if (beatmap.RankStatus > 0 && (int)beatmap.RankStatus < 4)
                                     {
                                         Utils.PlayWavAsync(Properties.Resources.Found);
                                     }
@@ -771,7 +812,8 @@ namespace ORB4
         {
             if (!Running)
             {
-                if (LastBeatmapFound != int.MinValue && LocalSettings.OpenInDownloader) {
+                if (LastBeatmapFound != int.MinValue && LocalSettings.OpenInDownloader)
+                {
                     return $"Show_Downloader {LastBeatmapFound}";
                 }
 
@@ -787,7 +829,8 @@ namespace ORB4
             {
                 if (_lastError != string.Empty)
                 {
-                    if (!_errorNotified) {
+                    if (!_errorNotified)
+                    {
                         Utils.PlayWavAsync(Properties.Resources.Error);
                         _errorNotified = true;
                     }
@@ -814,23 +857,42 @@ namespace ORB4
             }
         }
 
+        DateTime _lastCheck = DateTime.Now;
+
         public async Task RateChecker()
         {
             try
             {
                 while (Running)
                 {
-                    await Task.Delay(1000, _cancellationTokenSource.Token);
-
-                    if (_lastRequestDateTime.Minute != DateTime.Now.Minute)
+                    await Task.Delay(250, _cancellationTokenSource.Token);
+                    if (_lastCheck.Minute != DateTime.Now.Minute)
                     {
-                        _rateLimited = false;
-                        _requestsCount = 0;
+                        _rateLimitedRipple = false;
+                        _rateLimitedBancho = false;
+                        _requestsCountBancho = 0;
+                        _requestsCountRipple = 0;
+                        _lastCheck = DateTime.Now;
                     }
                     else
                     {
-                        if (_requestsCount > MaxRequestsPerMinute)
-                            _rateLimited = true;
+                        if (!Ripple && _requestsCountBancho > MaxRequestsPerMinuteBancho)
+                        {
+                            _rateLimitedBancho = true;
+                        } else if (!Ripple && _requestsCountBancho < MaxRequestsPerMinuteBancho)
+                        {
+                            _rateLimitedBancho = false;
+                        }
+
+
+                        if (Ripple && _requestsCountRipple > MaxRequestsPerMinuteRipple)
+                        {
+                            _rateLimitedRipple = true;
+                        }
+                        else if (Ripple && _requestsCountRipple < MaxRequestsPerMinuteRipple)
+                        {
+                            _rateLimitedRipple = false;
+                        }
                     }
                 }
             }
@@ -841,10 +903,11 @@ namespace ORB4
                 Logger.MainLogger.Log(Logger.LogTypes.Error, e.ToString());
             }
         }
+        public int MaxNumberBeatmapset { get; set; } = 0;
+        public int MaxNumberBetmap { get; set; } = 0;
 
-        private DateTime _lastRequestDateTime = DateTime.Now;
-
-        private bool _rateLimited = false;
+        private bool _rateLimitedBancho = false;
+        private bool _rateLimitedRipple = false;
 
         public async Task SearchAsync()
         {
@@ -863,9 +926,11 @@ namespace ORB4
                 bool d_locked = false;
                 try
                 {
-                    Console.WriteLine(_requestsCount);
-
-                    if (_rateLimited)
+#if DEBUG
+                    Console.WriteLine(_requestsCountBancho);
+                    Console.WriteLine(_requestsCountRipple);
+#endif
+                    if ((_rateLimitedBancho && !Ripple) || (_rateLimitedRipple && Ripple))
                     {
                         await Task.Delay(1000);
                         continue;
@@ -876,7 +941,7 @@ namespace ORB4
                         await Task.Delay(1000);
                         continue;
                     }
- 
+
                     if (ApiKey != string.Empty || Ripple)
                     {
                         string link = string.Empty;
@@ -886,10 +951,14 @@ namespace ORB4
                         {
                             link = _uncheckedLinks.Dequeue();
 
-                            if (LocalSettings.Ripple) 
+                            if (LocalSettings.Ripple)
+                            {
                                 id = int.Parse(link.Replace($"https://ripple.moe/api/get_beatmaps?k=NULL&s=", string.Empty));
+                            }
                             else
+                            {
                                 id = int.Parse(link.Replace($"https://osu.ppy.sh/api/get_beatmaps?k={ApiKey}&s=", string.Empty));
+                            }
 
                             method = false;
                         }
@@ -898,37 +967,48 @@ namespace ORB4
                             method = (RandomHelper.NextDouble() > 0.5);
 
                             ChooseId:
-                            id = method ? RandomHelper.Next(71, 2500000) : RandomHelper.Next(1, 1500000);
+                            id = method ? RandomHelper.Next(71, MaxNumberBetmap) : RandomHelper.Next(1, MaxNumberBeatmapset);
                             char mChar = method ? 'b' : 's';
 
                             if (method == true)
                             {
                                 int[] beatmaps = _testedBeatmaps.ToArray();
                                 if (beatmaps.Any(x => x == id))
+                                {
                                     goto ChooseId;
+                                }
                             }
                             else
                             {
                                 int[] beatmapset = _testedBeatmapsets.ToArray();
                                 if (beatmapset.Any(x => x == id))
+                                {
                                     goto ChooseId;
+                                }
                             }
 
                             if (LocalSettings.Ripple)
+                            {
                                 link = $"https://ripple.moe/api/get_beatmaps?k=NULL&{mChar}={id}";
+                            }
                             else
+                            {
                                 link = $"https://osu.ppy.sh/api/get_beatmaps?k={ApiKey}&{mChar}={id}";
+                            }
                         }
 
                         HttpResponseMessage response =
                             await client.GetAsync(link, _cancellationTokenSource.Token);
 
+#if DEBUG
                         Console.WriteLine(link);
-
+#endif
                         string json = await response.Content.ReadAsStringAsync();
 
                         if (json == "null")
+                        {
                             continue;
+                        }
 
                         object obj = JsonConvert.DeserializeObject(json);
 
@@ -942,8 +1022,10 @@ namespace ORB4
                                     _lastError = "Invalid API Key";
                                     _invalidApiKey = true;
                                 }
-                                else 
+                                else
+                                {
                                     _lastError = "API Error";
+                                }
 
                                 Logger.MainLogger.Log(Logger.LogTypes.Warning, $"SearchThread.Response.Error -> {error}.");
                             }
@@ -952,8 +1034,11 @@ namespace ORB4
                         {
                             try
                             {
-                                _requestsCount++;
-                                _lastRequestDateTime = DateTime.Now;
+                                if (!Ripple)
+                                    _requestsCountBancho++;
+                                else
+                                    _requestsCountRipple++;
+
 
                                 Beatmap[] beatmaps = ((JArray)obj).ToObject<Beatmap[]>();
 
@@ -964,15 +1049,21 @@ namespace ORB4
                                     foreach (var beatmap in beatmaps)
                                     {
                                         if (!_downloadedBeatmaps.Any(x => x.BeatmapId == beatmap.BeatmapId))
+                                        {
                                             _downloadedBeatmaps.Enqueue(beatmap);
+                                        }
                                     }
 
                                     if (method == true)
                                     {
                                         if (!LocalSettings.Ripple)
+                                        {
                                             _uncheckedLinks.Enqueue($"https://osu.ppy.sh/api/get_beatmaps?k={ApiKey}&s={beatmaps[0].BeatmapsetId}");
+                                        }
                                         else
-                                            _uncheckedLinks.Enqueue($"https://ripple.moe/api/get_beatmaps?k={ApiKey}&s={beatmaps[0].BeatmapsetId}");
+                                        {
+                                            _uncheckedLinks.Enqueue($"https://ripple.moe/api/get_beatmaps?k=NULL&s={beatmaps[0].BeatmapsetId}");
+                                        }
                                     }
                                 }
                                 d_locked = false;
@@ -983,12 +1074,16 @@ namespace ORB4
                                 if (method == true)
                                 {
                                     if (!_testedBeatmaps.Any(x => x == id))
+                                    {
                                         _testedBeatmaps.Add(id);
+                                    }
                                 }
                                 else
                                 {
                                     if (!_testedBeatmapsets.Any(x => x == id))
+                                    {
                                         _testedBeatmapsets.Add(id);
+                                    }
                                 }
                                 t_locked = false;
                                 _testedSemaphore.Release();
@@ -1015,7 +1110,7 @@ namespace ORB4
                     await Task.Delay(1000);
                     continue;
                 }
-                catch (TaskCanceledException e)
+                catch (TaskCanceledException)
                 {
                     Logger.MainLogger.Log(Logger.LogTypes.Info, $"SearchThread.Cancel -> Success");
                 }
@@ -1028,10 +1123,14 @@ namespace ORB4
                 finally
                 {
                     if (t_locked)
+                    {
                         _testedSemaphore.Release();
+                    }
 
                     if (d_locked)
+                    {
                         _downloadedSemaphore.Release();
+                    }
                 }
             }
         }
@@ -1039,13 +1138,13 @@ namespace ORB4
         public Settings LocalSettings { get; set; } = new Settings();
         public static string ApiKey { get; set; } = string.Empty;
 
-
-        public int FoundCurrentSearch {
+        public int FoundCurrentSearch
+        {
             get
             {
                 return _foundCount;
             }
-        } 
+        }
 
         public void Start()
         {
@@ -1073,15 +1172,23 @@ namespace ORB4
             _tasks.Clear();
 
             if (LocalSettings.AutoOpen || LocalSettings.OpenInDownloader)
+            {
                 Threads = 8;
+            }
             else
+            {
                 Threads = 2;
+            }
 
             for (int i = 0; i < Threads; i++)
+            {
                 _tasks.Add(new Task(async () => await SearchAsync()));
+            }
 
             for (int i = 0; i < Threads; i++)
+            {
                 _tasks[i].Start();
+            }
 
             Task.Factory.StartNew(async () => await ProcessBeatmaps());
             Task.Factory.StartNew(async () => await RateChecker());
@@ -1099,13 +1206,15 @@ namespace ORB4
 
         public int Threads { get; private set; }
 
-
         //private BeatmapsCache _rankedCache = new BeatmapsCache($"{Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}\\ORB\\RankedCache");
         //private BeatmapsCache _unrankedCache = new BeatmapsCache($"{Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}\\ORB\\UnrankedCache");
         //private BeatmapsCache _lovedCache = new BeatmapsCache($"{Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}\\ORB\\LovedCache");
 
         public Engine()
         {
+            KeyValuePair<int, int> ids = Utils.GetMaxIds();
+            MaxNumberBeatmapset = ids.Key; MaxNumberBetmap = ids.Value;
+
             string AppData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
 
             _rankedCache = new BeatmapsCache($"{Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}\\ORB\\RankedCache", this);

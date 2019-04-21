@@ -15,7 +15,7 @@
 
         function onScroll(ev) {
             if (Math.round(window.innerHeight + window.scrollY + 1) >= document.body.scrollHeight) {
-                if (loadingNewPage){
+                if (loadingNewPage) {
                     return;
                 }
 
@@ -33,9 +33,9 @@
                             else {
                                 array = JSON.parse(this.responseText);
                                 if (array.length == 0) {
-                                    window.onscroll = function() {};
+                                    window.onscroll = function () { };
                                     return;
-                                } 
+                                }
 
                                 searchUpdaters.forEach(timer => clearInterval(timer));
                                 searchUpdaters = [];
@@ -45,12 +45,13 @@
                                 for (let i = array.length - 1; i > -1; i--) {
                                     if (!loadingNewPage)
                                         break;
-                            
+
                                     const element = array[i];
 
                                     var parent = document.createElement('div');
                                     parent.id = element.id;
                                     parent.className = 'beatmap-panel';
+                                    parent.setAttribute('b_id', element.b_id);
                                     parent.style = 'margin-bottom: 10px';
 
                                     var thumbnail = document.createElement('div');
@@ -211,7 +212,7 @@
                 pageCount++;
                 searchRequest.send();
                 loadingNewPage = true;
-                
+
             }
         }
 
@@ -466,7 +467,7 @@
 
         function search(query, ignoreRanking = false) {
             loadingNewPage = false;
-            window.onscroll = function(ev) {onScroll(ev);}
+            window.onscroll = function (ev) { onScroll(ev); }
             tempQuery = query;
             pageCount = 0;
             updating.forEach(timer => clearInterval(timer));
@@ -537,6 +538,7 @@
 
                     var parent = document.createElement('div');
                     parent.id = element.id;
+                    parent.setAttribute('b_id', element.b_id);
                     parent.className = 'beatmap-panel';
                     parent.style = 'margin-bottom: 10px';
 
@@ -746,7 +748,7 @@
     <div id="settingsTitle" class="settings-title" style="opacity: 1;">ORB!direct
         <div style="display: inline-block; margin-left: -10px">
         </div>
-        <div class="normal-text" style="display: inline; margin-right: 65px; float: right; margin-top: 12px;" >
+        <div class="normal-text" style="display: inline; margin-right: 65px; float: right; margin-top: 12px;">
             <div class="onoffswitch">
                 <input onchange="unrankedSwitchAction()" type="checkbox" name="onoffswitch" class="onoffswitch-checkbox"
                     id="unranked">
