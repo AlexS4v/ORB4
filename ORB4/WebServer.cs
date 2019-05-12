@@ -550,7 +550,7 @@ namespace ORB4
 
                                 bytes = Encoding.UTF8.GetBytes(
                                     (await BeatmapDownloader
-                                    .RegisterDownload (int.Parse(query0), int.Parse(query4), query1, query2, query3))
+                                    .RegisterDownload (int.Parse(query0), int.Parse(query4), query2, query1, query3))
                                     .ToString());
 
                                 context.Response.StatusCode = 200;

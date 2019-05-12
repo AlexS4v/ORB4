@@ -22,13 +22,13 @@ namespace ORB4
             Hexide, Bloodcat
         }
 
-        public const string Version = "4.2.1S";
+        public const string Version = "4.2.2S";
 
-        public const int MaxRequestsPerMinuteBancho = 60;
-        public const int MaxRequestsPerMinuteRipple = 350;
+        public const int MaxRequestsPerMinuteBancho = 1200;
+        public const int MaxRequestsPerMinuteRipple = 1200;
 
-        private int _requestsCountBancho = 0;
-        private int _requestsCountRipple = 0;
+        private double _requestsCountBancho = MaxRequestsPerMinuteBancho;
+        private double _requestsCountRipple = MaxRequestsPerMinuteRipple;
 
         private Queue<Beatmap> _downloadedBeatmaps = new Queue<Beatmap>();
 
@@ -863,38 +863,36 @@ namespace ORB4
         {
             try
             {
-                while (Running)
+                await Task.Delay(250, _cancellationTokenSource.Token);
+                if (_lastCheck.Minute != DateTime.Now.Minute)
                 {
-                    await Task.Delay(250, _cancellationTokenSource.Token);
-                    if (_lastCheck.Minute != DateTime.Now.Minute)
+                    _rateLimitedRipple = false;
+                    _rateLimitedBancho = false;
+                    _requestsCountBancho = MaxRequestsPerMinuteBancho;
+                    _requestsCountRipple = MaxRequestsPerMinuteRipple;
+                    _lastCheck = DateTime.Now;
+                }
+                else
+                {
+                    if (!Ripple && _requestsCountBancho <= 0)
+                    {
+                        _rateLimitedBancho = true;
+                    }
+                    else if (!Ripple && _requestsCountBancho >= 0)
+                    {
+                        _rateLimitedBancho = false;
+                    }
+
+                    if (Ripple && _requestsCountRipple <= 0)
+                    {
+                        _rateLimitedRipple = true;
+                    }
+                    else if (Ripple && _requestsCountRipple >= 0)
                     {
                         _rateLimitedRipple = false;
-                        _rateLimitedBancho = false;
-                        _requestsCountBancho = 0;
-                        _requestsCountRipple = 0;
-                        _lastCheck = DateTime.Now;
-                    }
-                    else
-                    {
-                        if (!Ripple && _requestsCountBancho > MaxRequestsPerMinuteBancho)
-                        {
-                            _rateLimitedBancho = true;
-                        } else if (!Ripple && _requestsCountBancho < MaxRequestsPerMinuteBancho)
-                        {
-                            _rateLimitedBancho = false;
-                        }
-
-
-                        if (Ripple && _requestsCountRipple > MaxRequestsPerMinuteRipple)
-                        {
-                            _rateLimitedRipple = true;
-                        }
-                        else if (Ripple && _requestsCountRipple < MaxRequestsPerMinuteRipple)
-                        {
-                            _rateLimitedRipple = false;
-                        }
                     }
                 }
+
             }
             catch (TaskCanceledException)
             { }
@@ -905,6 +903,10 @@ namespace ORB4
         }
         public int MaxNumberBeatmapset { get; set; } = 0;
         public int MaxNumberBetmap { get; set; } = 0;
+
+        double accumulatedLatency = 0;
+
+        int requests = 0;
 
         private bool _rateLimitedBancho = false;
         private bool _rateLimitedRipple = false;
@@ -918,10 +920,12 @@ namespace ORB4
 
             client.DefaultRequestHeaders.Add("user-agent", $"ORB ({Version})");
 
+            double latencyRate;
             Logger.MainLogger.Log(Logger.LogTypes.Info, "SearchThread.Start -> Success");
 
             while (Running)
             {
+
                 bool t_locked = false;
                 bool d_locked = false;
                 try
@@ -932,9 +936,12 @@ namespace ORB4
 #endif
                     if ((_rateLimitedBancho && !Ripple) || (_rateLimitedRipple && Ripple))
                     {
+                        await RateChecker();
                         await Task.Delay(1000);
                         continue;
                     }
+                    else
+                        await RateChecker();
 
                     if (_invalidApiKey)
                     {
@@ -997,9 +1004,16 @@ namespace ORB4
                             }
                         }
 
+                        Stopwatch clock = new Stopwatch();
+                        clock.Start();
+
+                        requests++;
+
                         HttpResponseMessage response =
                             await client.GetAsync(link, _cancellationTokenSource.Token);
 
+                        clock.Stop();
+                        latencyRate = clock.ElapsedMilliseconds / 100.0 * 2;
 #if DEBUG
                         Console.WriteLine(link);
 #endif
@@ -1035,9 +1049,14 @@ namespace ORB4
                             try
                             {
                                 if (!Ripple)
-                                    _requestsCountBancho++;
+                                {
+                                    _requestsCountBancho -= latencyRate;
+                                }
                                 else
-                                    _requestsCountRipple++;
+                                {
+                                    _requestsCountRipple -= latencyRate;
+                                }
+
 
 
                                 Beatmap[] beatmaps = ((JArray)obj).ToObject<Beatmap[]>();
@@ -1191,7 +1210,6 @@ namespace ORB4
             }
 
             Task.Factory.StartNew(async () => await ProcessBeatmaps());
-            Task.Factory.StartNew(async () => await RateChecker());
             Logger.MainLogger.Log(Logger.LogTypes.Info, "SearchEngine.Start -> Success");
         }
 
