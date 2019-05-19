@@ -23,6 +23,7 @@ namespace ORB4
         }
 
         public const string Version = "4.2.3S";
+        public const string UpdateKey = "f5acf72153a5431f0191c1c75a0afb6955cb812e1209567dc5e65394f7838dcc";
 
         public const int MaxRequestsPerMinuteBancho = 1200;
         public const int MaxRequestsPerMinuteRipple = 1200;
