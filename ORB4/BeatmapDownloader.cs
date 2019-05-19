@@ -384,7 +384,10 @@ namespace ORB4
                     request.UserAgent = $"ORB ({Engine.Version})";
                     WebResponse response = request.GetResponse();
 
-                    string nextBeatmapPath = Utils.GetOsuPath() + "\\Songs\\" + dl.Beatmapset_Id.ToString() + " [ORB] " + dl.Artist + " - " + dl.Title + ".osz";
+                    string beatmapFilename = dl.Beatmapset_Id.ToString() + " [ORB] " + dl.Artist + " - " + dl.Title;
+                    beatmapFilename = string.Join("_", beatmapFilename.Split(Path.GetInvalidFileNameChars()));
+
+                    string nextBeatmapPath = Utils.GetOsuPath() + "\\Songs\\" + beatmapFilename + ".osz";
 
                     using (FileStream fs = File.Create(_path + dl.Beatmapset_Id.ToString() + ".osz"))
                     {

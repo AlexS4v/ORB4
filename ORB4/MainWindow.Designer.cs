@@ -41,6 +41,9 @@ namespace ORB4
             this.ClientSize = new System.Drawing.Size(900, 600);
             this.Name = "MainWindow";
             this.Text = $"Osu! Random Beatmap - {Engine.Version}";
+#if DEBUG
+            this.Text += " - DEBUG BUILD, DO NOT DISTRIBUTE";
+#endif
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.OnClosing);
             this.Load += new System.EventHandler(this.MainWindow_Load);
             this.FormClosed += OnClosed; ;

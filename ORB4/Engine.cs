@@ -22,7 +22,7 @@ namespace ORB4
             Hexide, Bloodcat
         }
 
-        public const string Version = "4.2.2S";
+        public const string Version = "4.2.3S";
 
         public const int MaxRequestsPerMinuteBancho = 1200;
         public const int MaxRequestsPerMinuteRipple = 1200;
