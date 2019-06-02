@@ -103,7 +103,6 @@ namespace ORB4
                 HttpClient client = new HttpClient(handler);
 
                 client.DefaultRequestHeaders.Add("user-agent", $"ORB ({Engine.Version})");
-                //username=AlexS4v&password=SpaceToN2015&redirect=index.php&sid=&login=Login
                 StringContent content = new StringContent($"username={Username}&password={Password}&redirect=index.php&sid=&login=Login");
                 content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/x-www-form-urlencoded");
 

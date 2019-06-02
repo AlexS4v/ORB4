@@ -63,7 +63,7 @@ namespace ORB4
         }
 
         public Logger()
-        {
+        { 
             _writer = System.IO.File.CreateText($"{Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)}\\ORB\\program.log");
             _logQueue = new Queue<KeyValuePair<LogTypes, object>>();
         }

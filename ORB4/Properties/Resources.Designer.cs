@@ -403,6 +403,16 @@ namespace ORB4.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
+        internal static byte[] _70 {
+            get {
+                object obj = ResourceManager.GetObject("_70", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
         internal static byte[] Click {
             get {
                 object obj = ResourceManager.GetObject("Click", resourceCulture);

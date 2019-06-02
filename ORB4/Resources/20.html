@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
 
 <head>
@@ -6,12 +6,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <script src="/progressbar.js"></script>
     <script src="/preview_player.js"></script>
+    <script src="/rightbuttonmenu.js"></script>
     <link rel="stylesheet" type="text/css" media="screen" href="../css/main.css">
 </head>
 
-<body style="overflow-y: auto;">
+<body onclick="hideCurrentMenu()" style="overflow-y: auto;">
     <script>
         var loadingNewPage = false;
+
+        function onBeatmapRightClick(e, obj) {
+            rightButtonMenu([
+                {caption: "Copy link", func : function() { cSharpTools.setClipboard(`https://osu.ppy.sh/s/${obj.parentNode.id}`); } },
+                {caption: "Open link", func : function() { openBeatmapset(obj); } },
+            ], {x:e.pageX, y:e.pageY});
+        }
 
         function onScroll(ev) {
             if (Math.round(window.innerHeight + window.scrollY + 1) >= document.body.scrollHeight) {
@@ -131,7 +139,7 @@
                                                     return;
                                                 }
                                             } else if (ev.button == 2) {
-                                                openBeatmapset(this);
+                                                onBeatmapRightClick(ev, this);
                                             }
                                         };
 
@@ -215,6 +223,7 @@
 
             }
         }
+
 
         function openBeatmapset(x) {
             var request = new XMLHttpRequest();
@@ -486,6 +495,15 @@
                         if (working)
                             return;
                         else {
+                            var obj = JSON.parse(this.responseText);
+
+                            if (obj.error !== undefined) {
+                                document.getElementById("beatmaps").innerHTML = `<span style="color: gray">${obj.error}</span>`;
+                                searchUpdaters.forEach(timer => clearInterval(timer));
+                                searchUpdaters = [];
+                                return;
+                            }
+
                             updateList(JSON.parse(this.responseText));
                             searchUpdaters.forEach(timer => clearInterval(timer));
                             searchUpdaters = [];
@@ -621,7 +639,7 @@
                                     return;
                                 }
                             } else if (ev.button == 2) {
-                                openBeatmapset(this);
+                                onBeatmapRightClick(ev, this);
                             }
                         };
 
@@ -629,7 +647,6 @@
                             const mod = element.modes[k];
                             var mod_ = document.createElement('div');
                             mod_.className = 'beatmap-panel-information-mode';
-
                             if (!darkMode) {
                                 switch (mod) {
                                     case 0:

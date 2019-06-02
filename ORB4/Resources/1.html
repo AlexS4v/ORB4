@@ -53,26 +53,26 @@
             updateAnyLengthSwitch();
             updateAnyBPMSwitch();
         }
-        
-        document.addEventListener('contextmenu', function(e) {
+
+        document.addEventListener('contextmenu', function (e) {
             if (e.target.id != "api_key")
                 e.preventDefault();
         });
-        
-        function playSound(name){
-            setTimeout(function(){
+
+        function playSound(name) {
+            setTimeout(function () {
                 var request = new XMLHttpRequest();
-                    request.open("GET", `/sounds/play?id=${name}`, true);
-                    request.send();
+                request.open("GET", `/sounds/play?id=${name}`, true);
+                request.send();
             }, 1);
         }
 
-        function openLogin(){
-            setTimeout(function(){
+        function openLogin() {
+            setTimeout(function () {
                 var request = new XMLHttpRequest();
-                    request.open("GET", `/utils/login_form`, false);
-                    request.send();
-                    updateSettings();
+                request.open("GET", `/utils/login_form`, false);
+                request.send();
+                updateSettings();
             }, 1);
         }
 
@@ -89,12 +89,12 @@
             if (type == "checkbox")
                 playSound("Switch");
 
-			if (id == "night_mode") {
-				if (element.checked)
-					window.parent.darkModeAll();
-				else
-					window.parent.lightModeAll();
-			}
+            if (id == "night_mode") {
+                if (element.checked)
+                    window.parent.darkModeAll();
+                else
+                    window.parent.lightModeAll();
+            }
 
             sendJson({ "setting_id": id, "type": type, "value": element.value, "checked": element.checked });
             updateSettings();
@@ -103,404 +103,417 @@
 </head>
 
 <body onload="updateSettings()" style="overflow-y: scroll">
-	<div style="margin: 5px;">
-    <div id="settingsTitle" class="settings-title" style="opacity: 1;">Settings</div>
+    <div style="margin: 5px;">
+        <div id="settingsTitle" class="settings-title" style="opacity: 1;">Settings</div>
 
-    <div class="setting" >
+        <div class="setting">
             <div class="onoffswitch">
                 <input onchange="onChange(this)" type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="sound_effects">
                 <label class="onoffswitch-label" for="sound_effects"></label>
             </div> &nbsp;&nbsp;&nbsp; Sound effects
         </div>
-    
-	<div class="setting" style="margin-top:2px" >
+
+        <div class="setting" style="margin-top:2px">
             <div class="onoffswitch">
                 <input onchange="onChange(this)" type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="night_mode">
                 <label class="onoffswitch-label" for="night_mode"></label>
             </div> &nbsp;&nbsp;&nbsp; Night mode
         </div>
 
-    <div class="setting" style="margin-top:15px">
-        API key &nbsp; &nbsp;
-        <input onchange="onChange(this)" id="api_key" type="password" style="width: 100px;">
-    </div>
-    <a class="settings-link" onclick="cSharpTools.openUrl('https://osu.ppy.sh/p/api');" href="#">Get your API key here.</a>
+        <div class="setting" style="margin-top:15px">
+            API key &nbsp; &nbsp;
+            <input onchange="onChange(this)" id="api_key" type="password" style="width: 100px;">
+        </div>
+        <a class="settings-link" onclick="cSharpTools.openUrl('https://osu.ppy.sh/p/api');" href="#">Get your API key here.</a>
 
-    <div class="setting" style="margin-top:15px">
-        <div class="onoffswitch">
-            <input onchange="onChange(this)" type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="auto_open">
-            <label class="onoffswitch-label" for="auto_open"></label>
-        </div> &nbsp;&nbsp;&nbsp; Auto open
-    </div>
+        <div class="setting" style="margin-top:15px">
+            <div class="onoffswitch">
+                <input onchange="onChange(this)" type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="auto_open">
+                <label class="onoffswitch-label" for="auto_open"></label>
+            </div> &nbsp;&nbsp;&nbsp; Auto open
+        </div>
 
-    <div class="setting" style="margin-top:2px">
-        <div class="onoffswitch">
-            <input onchange="onChange(this)" type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="open_in_game">
-            <label class="onoffswitch-label" for="open_in_game"></label>
-        </div> &nbsp;&nbsp;&nbsp; Open in game
-    </div>
+        <div class="setting" style="margin-top:2px">
+            <div class="onoffswitch">
+                <input onchange="onChange(this)" type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="open_in_game">
+                <label class="onoffswitch-label" for="open_in_game"></label>
+            </div> &nbsp;&nbsp;&nbsp; Open link in game
+        </div>
 
-    <div class="setting" style="margin-top:2px">
+        <div class="setting" style="margin-top:2px">
             <div class="onoffswitch">
                 <input onchange="onChange(this)" type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="open_in_downloader">
                 <label class="onoffswitch-label" for="open_in_downloader"></label>
             </div> &nbsp;&nbsp;&nbsp; Open in ORB!direct
         </div>
 
-    <div class="settings-group" style="margin-top: 20px;">Search criteria</div>
+        <div class="settings-group" style="margin-top: 20px;">Search criteria</div>
 
-    <div class="setting" style="margin-top:20px">
-        <div class="onoffswitch">
-            <input onchange="onChange(this)" type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="old_beatmaps">
-            <label class="onoffswitch-label" for="old_beatmaps"></label>
-        </div> &nbsp;&nbsp;&nbsp;
-        <div class="tooltip">
-            Old beatmaps
-            <span class="tooltiptext">Before 2011</span>
+        <div class="setting" style="margin-top:20px">
+            <div class="onoffswitch">
+                <input onchange="onChange(this)" type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="old_beatmaps">
+                <label class="onoffswitch-label" for="old_beatmaps"></label>
+            </div> &nbsp;&nbsp;&nbsp;
+            <div class="tooltip">
+                Old beatmaps
+                <span class="tooltiptext">Before 2011</span>
+            </div>
         </div>
-    </div>
 
-    <div class="setting" style="margin-top:2px">
-        <div class="onoffswitch">
-            <input onchange="onChange(this)" type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="new_beatmaps">
-            <label class="onoffswitch-label" for="new_beatmaps"></label>
-        </div> &nbsp;&nbsp;&nbsp;
-        <div class="tooltip">
-            New beatmaps
-            <span style="bottom: -160%;" class="tooltiptext">After 2011</span>
+        <div class="setting" style="margin-top:2px">
+            <div class="onoffswitch">
+                <input onchange="onChange(this)" type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="new_beatmaps">
+                <label class="onoffswitch-label" for="new_beatmaps"></label>
+            </div> &nbsp;&nbsp;&nbsp;
+            <div class="tooltip">
+                New beatmaps
+                <span style="bottom: -160%;" class="tooltiptext">After 2011</span>
+            </div>
         </div>
-    </div>
 
-    <hr>
+        <hr>
 
-    <div class="setting" style="margin-top:20px">
-        <div class="onoffswitch">
-            <input onchange="anyDifficultySwitch(this)" type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="any_difficulty">
-            <label class="onoffswitch-label" for="any_difficulty"></label>
-        </div> &nbsp;&nbsp;&nbsp; Any difficulty
-    </div>
+        <div class="setting" style="margin-top:20px">
+            <div class="onoffswitch">
+                <input onchange="anyDifficultySwitch(this)" type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="any_difficulty">
+                <label class="onoffswitch-label" for="any_difficulty"></label>
+            </div> &nbsp;&nbsp;&nbsp; Any difficulty
+        </div>
 
-    <script>
-        function updateAnyDifficultySwitch() {
-            if (document.getElementById("any_difficulty").checked) {
-                document.getElementById("max_stars").disabled = true;
-                document.getElementById("min_stars").disabled = true;
-            } else {
-                document.getElementById("max_stars").disabled = false;
-                document.getElementById("min_stars").disabled = false;
+        <script>
+            function updateAnyDifficultySwitch() {
+                if (document.getElementById("any_difficulty").checked) {
+                    document.getElementById("max_stars").disabled = true;
+                    document.getElementById("min_stars").disabled = true;
+                } else {
+                    document.getElementById("max_stars").disabled = false;
+                    document.getElementById("min_stars").disabled = false;
+                }
             }
-        }
 
-        function anyDifficultySwitch(element) {
-            onChange(element);
+            function anyDifficultySwitch(element) {
+                onChange(element);
 
-            if (element.checked) {
-                document.getElementById("max_stars").disabled = true;
-                document.getElementById("min_stars").disabled = true;
-            } else {
-                document.getElementById("max_stars").disabled = false;
-                document.getElementById("min_stars").disabled = false;
+                if (element.checked) {
+                    document.getElementById("max_stars").disabled = true;
+                    document.getElementById("min_stars").disabled = true;
+                } else {
+                    document.getElementById("max_stars").disabled = false;
+                    document.getElementById("min_stars").disabled = false;
+                }
             }
-        }
-    </script>
+        </script>
 
-    <div class="setting" style="margin-top:10px">
-        Max stars
-        <input id="max_stars" onchange="onChange(this)" type="number" style="margin-left: 10px;" value="100" />
-    </div>
+        <div class="setting" style="margin-top:10px">
+            Max stars
+            <input id="max_stars" onchange="onChange(this)" type="number" style="margin-left: 10px;" value="100" />
+        </div>
 
-    <div class="setting" style="margin-top:10px; margin-bottom: 25px">
-        Min stars
-        <input id="min_stars" onchange="onChange(this)" type="number" style="margin-left: 13.5px;" value="0" />
-    </div>
+        <div class="setting" style="margin-top:10px; margin-bottom: 25px">
+            Min stars
+            <input id="min_stars" onchange="onChange(this)" type="number" style="margin-left: 13.5px;" value="0" />
+        </div>
 
-    <hr>
+        <hr>
 
-    <div class="setting" style="margin-top:10px">
-        <div class="onoffswitch">
-            <input onchange="anyLengthSwitch(this)" type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="any_length">
-            <label class="onoffswitch-label" for="any_length"></label>
-        </div> &nbsp;&nbsp;&nbsp; Any length
-    </div>
+        <div class="setting" style="margin-top:10px">
+            <div class="onoffswitch">
+                <input onchange="anyLengthSwitch(this)" type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="any_length">
+                <label class="onoffswitch-label" for="any_length"></label>
+            </div> &nbsp;&nbsp;&nbsp; Any length
+        </div>
 
-    <script>
-        function updateAnyLengthSwitch() {
-            if (document.getElementById("any_length").checked) {
-                document.getElementById("max_length").disabled = true;
-                document.getElementById("min_length").disabled = true;
-            } else {
-                document.getElementById("max_length").disabled = false;
-                document.getElementById("min_length").disabled = false;
+        <script>
+            function updateAnyLengthSwitch() {
+                if (document.getElementById("any_length").checked) {
+                    document.getElementById("max_length").disabled = true;
+                    document.getElementById("min_length").disabled = true;
+                } else {
+                    document.getElementById("max_length").disabled = false;
+                    document.getElementById("min_length").disabled = false;
+                }
             }
-        }
 
-        function anyLengthSwitch(element) {
+            function anyLengthSwitch(element) {
 
-            onChange(element);
+                onChange(element);
 
-            if (element.checked) {
-                document.getElementById("max_length").disabled = true;
-                document.getElementById("min_length").disabled = true;
-            } else {
-                document.getElementById("max_length").disabled = false;
-                document.getElementById("min_length").disabled = false;
+                if (element.checked) {
+                    document.getElementById("max_length").disabled = true;
+                    document.getElementById("min_length").disabled = true;
+                } else {
+                    document.getElementById("max_length").disabled = false;
+                    document.getElementById("min_length").disabled = false;
+                }
             }
-        }
 
-        function updateAnyBPMSwitch(element) {
-            if (document.getElementById("any_bpm").checked) {
-                document.getElementById("max_bpm").disabled = true;
-                document.getElementById("min_bpm").disabled = true;
-            } else {
-                document.getElementById("max_bpm").disabled = false;
-                document.getElementById("min_bpm").disabled = false;
+            function updateAnyBPMSwitch(element) {
+                if (document.getElementById("any_bpm").checked) {
+                    document.getElementById("max_bpm").disabled = true;
+                    document.getElementById("min_bpm").disabled = true;
+                } else {
+                    document.getElementById("max_bpm").disabled = false;
+                    document.getElementById("min_bpm").disabled = false;
+                }
             }
-        }
 
-        function anyBPMSwitch(element) {
-            onChange(element);
+            function anyBPMSwitch(element) {
+                onChange(element);
 
-            if (element.checked) {
-                document.getElementById("max_bpm").disabled = true;
-                document.getElementById("min_bpm").disabled = true;
-            } else {
-                document.getElementById("max_bpm").disabled = false;
-                document.getElementById("min_bpm").disabled = false;
+                if (element.checked) {
+                    document.getElementById("max_bpm").disabled = true;
+                    document.getElementById("min_bpm").disabled = true;
+                } else {
+                    document.getElementById("max_bpm").disabled = false;
+                    document.getElementById("min_bpm").disabled = false;
+                }
             }
-        }
-    </script>
+        </script>
 
-    <div class="setting" style="margin-top:10px">
-        Max length 
-        <input id="max_length" onchange="onChange(this)" type="number" style="margin-left: 10px;" value="600" />
-		<span style="color: gray; font-size: 15px;">*</span>
-    </div>
+        <div class="setting" style="margin-top:10px">
+            Max length
+            <input id="max_length" onchange="onChange(this)" type="number" style="margin-left: 10px;" value="600" />
+            <span style="color: gray; font-size: 15px;">*</span>
+        </div>
 
-    <div class="setting" style="margin-top:10px;">
-        Min length
-        <input id="min_length" onchange="onChange(this)" type="number" style="margin-left: 13.5px;" value="0" />
-		<span style="color: gray; font-size: 15px;">*</span>
-    </div>
+        <div class="setting" style="margin-top:10px;">
+            Min length
+            <input id="min_length" onchange="onChange(this)" type="number" style="margin-left: 13.5px;" value="0" />
+            <span style="color: gray; font-size: 15px;">*</span>
+        </div>
 
-	<div class="setting" style="margin-top:10px">
-	<span style="color: gray; font-size: 12px; text-align: left">* seconds</span>
-	</div>
-    <hr>
+        <div class="setting" style="margin-top:10px">
+            <span style="color: gray; font-size: 12px; text-align: left">* seconds</span>
+        </div>
+        <hr>
 
-    <div class="setting" style="margin-top:10px">
-        <div class="onoffswitch">
-            <input onchange="anyBPMSwitch(this)" type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="any_bpm">
-            <label class="onoffswitch-label" for="any_bpm"></label>
-        </div> &nbsp;&nbsp;&nbsp; Any BPM
-    </div>
+        <div class="setting" style="margin-top:10px">
+            <div class="onoffswitch">
+                <input onchange="anyBPMSwitch(this)" type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="any_bpm">
+                <label class="onoffswitch-label" for="any_bpm"></label>
+            </div> &nbsp;&nbsp;&nbsp; Any BPM
+        </div>
 
-    <div class="setting" style="margin-top:10px">
-        Max BPM
-        <input id="max_bpm" onchange="onChange(this)" type="number" style="margin-left: 10px;" value="250" />
-    </div>
+        <div class="setting" style="margin-top:10px">
+            Max BPM
+            <input id="max_bpm" onchange="onChange(this)" type="number" style="margin-left: 10px;" value="250" />
+        </div>
 
-    <div class="setting" style="margin-top:10px;">
-        Min BPM
-        <input id="min_bpm" onchange="onChange(this)" type="number" style="margin-left: 13.5px;" value="0" />
-    </div>
+        <div class="setting" style="margin-top:10px;">
+            Min BPM
+            <input id="min_bpm" onchange="onChange(this)" type="number" style="margin-left: 13.5px;" value="0" />
+        </div>
 
-    <div class="settings-group" style="margin-top: 30px; font-family: NotoRegular; font-size: 18px">Ranking status</div>
+        <div class="settings-group" style="margin-top: 30px; font-family: NotoRegular; font-size: 18px">Ranking status</div>
 
-    <div class="setting" style="margin-top:15px">
-        <div class="onoffswitch">
-            <input onchange="onChange(this)" type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="loved">
-            <label class="onoffswitch-label" for="loved"></label>
-        </div> &nbsp;&nbsp;&nbsp; Loved
-    </div>
+        <div class="setting" style="margin-top:15px">
+            <div class="onoffswitch">
+                <input onchange="onChange(this)" type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="loved">
+                <label class="onoffswitch-label" for="loved"></label>
+            </div> &nbsp;&nbsp;&nbsp; Loved
+        </div>
 
+        <div class="setting" style="margin-top:2px">
+            <div class="onoffswitch">
+                <input onchange="onChange(this)" type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="qualified" checked>
+                <label class="onoffswitch-label" for="qualified"></label>
+            </div> &nbsp;&nbsp;&nbsp; Qualified
+        </div>
+
+        <div class="setting" style="margin-top:2px">
+            <div class="onoffswitch">
+                <input onchange="onChange(this)" type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="approved" checked>
+                <label class="onoffswitch-label" for="approved"></label>
+            </div> &nbsp;&nbsp;&nbsp; Approved
+        </div>
+
+        <div class="setting" style="margin-top:2px">
+            <div class="onoffswitch">
+                <input onchange="onChange(this)" type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="ranked" checked>
+                <label class="onoffswitch-label" for="ranked"></label>
+            </div> &nbsp;&nbsp;&nbsp; Ranked
+        </div>
+
+        <div class="setting" style="margin-top:2px">
+            <div class="onoffswitch">
+                <input onchange="onChange(this)" type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="pending">
+                <label class="onoffswitch-label" for="pending"></label>
+            </div> &nbsp;&nbsp;&nbsp; Pending
+        </div>
+
+        <div class="setting" style="margin-top:2px">
+            <div class="onoffswitch">
+                <input onchange="onChange(this)" type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="wip">
+                <label class="onoffswitch-label" for="wip"></label>
+            </div> &nbsp;&nbsp;&nbsp; WIP
+        </div>
+
+        <div class="setting" style="margin-top:2px">
+            <div class="onoffswitch">
+                <input onchange="onChange(this)" type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="graveyarded">
+                <label class="onoffswitch-label" for="graveyarded"></label>
+            </div> &nbsp;&nbsp;&nbsp; Graveyarded
+        </div>
+
+        <div class="settings-group" style="margin-top: 30px; font-family: NotoRegular; font-size: 18px">Modes</div>
+
+        <div class="setting" style="margin-top:15px">
+            <div class="onoffswitch">
+                <input onchange="onChange(this)" type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="standard" checked>
+                <label class="onoffswitch-label" for="standard"></label>
+            </div> &nbsp;&nbsp;&nbsp; Standard
+        </div>
+
+        <div class="setting" style="margin-top:2px">
+            <div class="onoffswitch">
+                <input onchange="onChange(this)" type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="taiko">
+                <label class="onoffswitch-label" for="taiko"></label>
+            </div> &nbsp;&nbsp;&nbsp; Taiko
+        </div>
+
+        <div class="setting" style="margin-top:2px">
+            <div class="onoffswitch">
+                <input onchange="onChange(this)" type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="catch_the_beat">
+                <label class="onoffswitch-label" for="catch_the_beat"></label>
+            </div> &nbsp;&nbsp;&nbsp; Catch The Beat
+        </div>
+
+        <div class="setting" style="margin-top:2px">
+            <div class="onoffswitch">
+                <input onchange="onChange(this)" type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="mania">
+                <label class="onoffswitch-label" for="mania"></label>
+            </div> &nbsp;&nbsp;&nbsp; Mania
+        </div>
+
+        <div class="settings-group" style="margin-top: 30px; font-family: NotoRegular; font-size: 18px">Genres</div>
+
+        <div class="setting" style="margin-top:15px">
+            <div class="onoffswitch">
+                <input onchange="onChange(this)" type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="unspecified" checked>
+                <label class="onoffswitch-label" for="unspecified"></label>
+            </div> &nbsp;&nbsp;&nbsp; Unspecified
+        </div>
+
+        <div class="setting" style="margin-top:2px">
+            <div class="onoffswitch">
+                <input onchange="onChange(this)" type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="video_game" checked>
+                <label class="onoffswitch-label" for="video_game"></label>
+            </div> &nbsp;&nbsp;&nbsp; Video Game
+        </div>
+
+        <div class="setting" style="margin-top:2px">
+            <div class="onoffswitch">
+                <input onchange="onChange(this)" type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="anime" checked>
+                <label class="onoffswitch-label" for="anime"></label>
+            </div> &nbsp;&nbsp;&nbsp; Anime
+        </div>
+
+        <div class="setting" style="margin-top:2px">
+            <div class="onoffswitch">
+                <input onchange="onChange(this)" type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="rock" checked>
+                <label class="onoffswitch-label" for="rock"></label>
+            </div> &nbsp;&nbsp;&nbsp; Rock
+        </div>
+
+        <div class="setting" style="margin-top:2px">
+            <div class="onoffswitch">
+                <input onchange="onChange(this)" type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="pop" checked>
+                <label class="onoffswitch-label" for="pop"></label>
+            </div> &nbsp;&nbsp;&nbsp; Pop
+        </div>
+
+        <div class="setting" style="margin-top:2px">
+            <div class="onoffswitch">
+                <input onchange="onChange(this)" type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="hip_hop" checked>
+                <label class="onoffswitch-label" for="hip_hop"></label>
+            </div> &nbsp;&nbsp;&nbsp; Hip Hop
+        </div>
+
+        <div class="setting" style="margin-top:2px">
+            <div class="onoffswitch">
+                <input onchange="onChange(this)" type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="novelty" checked>
+                <label class="onoffswitch-label" for="novelty"></label>
+            </div> &nbsp;&nbsp;&nbsp; Novelty
+        </div>
+
+        <div class="setting" style="margin-top:2px">
+            <div class="onoffswitch">
+                <input onchange="onChange(this)" type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="electronic" checked>
+                <label class="onoffswitch-label" for="electronic"></label>
+            </div> &nbsp;&nbsp;&nbsp; Electronic
+        </div>
+
+        <div class="setting" style="margin-top:2px">
+            <div class="onoffswitch">
+                <input onchange="onChange(this)" type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="other" checked>
+                <label class="onoffswitch-label" for="other"></label>
+            </div> &nbsp;&nbsp;&nbsp; Other
+        </div>
+
+        <div class="settings-group" style="margin-top: 30px; font-family: NotoRegular; font-size: 18px">Bloodcat</div>
+
+        <div class="setting" style="margin-top:15px">
+            <div class="onoffswitch">
+                <input onchange="onChange(this)" type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="bc_download_from_cdn">
+                <label class="onoffswitch-label" for="bc_download_from_cdn"></label>
+            </div> &nbsp;&nbsp;&nbsp; Download from CDN
+        </div>
+
+        <div class="setting" style="margin-top:2px">
+            <div class="onoffswitch">
+                <input onchange="onChange(this)" type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="bc_remove_video_storyboard">
+                <label class="onoffswitch-label" for="bc_remove_video_storyboard"></label>
+            </div> &nbsp;&nbsp;&nbsp; No video
+        </div>
+
+        <div class="setting" style="margin-top:2px">
+            <div class="onoffswitch">
+                <input onchange="onChange(this)" type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="bc_remove_skin">
+                <label class="onoffswitch-label" for="bc_remove_skin"></label>
+            </div> &nbsp;&nbsp;&nbsp; No skin
+        </div>
+
+        <!--
     <div class="setting" style="margin-top:2px">
-        <div class="onoffswitch">
-            <input onchange="onChange(this)" type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="qualified" checked>
-            <label class="onoffswitch-label" for="qualified"></label>
-        </div> &nbsp;&nbsp;&nbsp; Qualified
-    </div>
-
-    <div class="setting" style="margin-top:2px">
-        <div class="onoffswitch">
-            <input onchange="onChange(this)" type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="approved" checked>
-            <label class="onoffswitch-label" for="approved"></label>
-        </div> &nbsp;&nbsp;&nbsp; Approved
-    </div>
-
-    <div class="setting" style="margin-top:2px">
-        <div class="onoffswitch">
-            <input onchange="onChange(this)" type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="ranked" checked>
-            <label class="onoffswitch-label" for="ranked"></label>
-        </div> &nbsp;&nbsp;&nbsp; Ranked
-    </div>
-
-    <div class="setting" style="margin-top:2px">
-        <div class="onoffswitch">
-            <input onchange="onChange(this)" type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="pending">
-            <label class="onoffswitch-label" for="pending"></label>
-        </div> &nbsp;&nbsp;&nbsp; Pending
-    </div>
-
-    <div class="setting" style="margin-top:2px">
-        <div class="onoffswitch">
-            <input onchange="onChange(this)" type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="wip">
-            <label class="onoffswitch-label" for="wip"></label>
-        </div> &nbsp;&nbsp;&nbsp; WIP
-    </div>
-
-    <div class="setting" style="margin-top:2px">
-        <div class="onoffswitch">
-            <input onchange="onChange(this)" type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="graveyarded">
-            <label class="onoffswitch-label" for="graveyarded"></label>
-        </div> &nbsp;&nbsp;&nbsp; Graveyarded
-    </div>
-
-    <div class="settings-group" style="margin-top: 30px; font-family: NotoRegular; font-size: 18px">Modes</div>
-
-    <div class="setting" style="margin-top:15px">
-        <div class="onoffswitch">
-            <input onchange="onChange(this)" type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="standard" checked>
-            <label class="onoffswitch-label" for="standard"></label>
-        </div> &nbsp;&nbsp;&nbsp; Standard
-    </div>
-
-    <div class="setting" style="margin-top:2px">
-        <div class="onoffswitch">
-            <input onchange="onChange(this)" type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="taiko">
-            <label class="onoffswitch-label" for="taiko"></label>
-        </div> &nbsp;&nbsp;&nbsp; Taiko
-    </div>
-
-    <div class="setting" style="margin-top:2px">
-        <div class="onoffswitch">
-            <input onchange="onChange(this)" type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="catch_the_beat">
-            <label class="onoffswitch-label" for="catch_the_beat"></label>
-        </div> &nbsp;&nbsp;&nbsp; Catch The Beat
-    </div>
-
-    <div class="setting" style="margin-top:2px">
-        <div class="onoffswitch">
-            <input onchange="onChange(this)" type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="mania">
-            <label class="onoffswitch-label" for="mania"></label>
-        </div> &nbsp;&nbsp;&nbsp; Mania
-    </div>
-
-    <div class="settings-group" style="margin-top: 30px; font-family: NotoRegular; font-size: 18px">Genres</div>
-
-    <div class="setting" style="margin-top:15px">
-        <div class="onoffswitch">
-            <input onchange="onChange(this)" type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="unspecified" checked>
-            <label class="onoffswitch-label" for="unspecified"></label>
-        </div> &nbsp;&nbsp;&nbsp; Unspecified
-    </div>
-
-    <div class="setting" style="margin-top:2px">
-        <div class="onoffswitch">
-            <input onchange="onChange(this)" type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="video_game" checked>
-            <label class="onoffswitch-label" for="video_game"></label>
-        </div> &nbsp;&nbsp;&nbsp; Video Game
-    </div>
-
-    <div class="setting" style="margin-top:2px">
-        <div class="onoffswitch">
-            <input onchange="onChange(this)" type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="anime" checked>
-            <label class="onoffswitch-label" for="anime"></label>
-        </div> &nbsp;&nbsp;&nbsp; Anime
-    </div>
-
-    <div class="setting" style="margin-top:2px">
-        <div class="onoffswitch">
-            <input onchange="onChange(this)" type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="rock" checked>
-            <label class="onoffswitch-label" for="rock"></label>
-        </div> &nbsp;&nbsp;&nbsp; Rock
-    </div>
-
-    <div class="setting" style="margin-top:2px">
-        <div class="onoffswitch">
-            <input onchange="onChange(this)" type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="pop" checked>
-            <label class="onoffswitch-label" for="pop"></label>
-        </div> &nbsp;&nbsp;&nbsp; Pop
-    </div>
-
-    <div class="setting" style="margin-top:2px">
-        <div class="onoffswitch">
-            <input onchange="onChange(this)" type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="hip_hop" checked>
-            <label class="onoffswitch-label" for="hip_hop"></label>
-        </div> &nbsp;&nbsp;&nbsp; Hip Hop
-    </div>
-
-    <div class="setting" style="margin-top:2px">
-        <div class="onoffswitch">
-            <input onchange="onChange(this)" type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="novelty" checked>
-            <label class="onoffswitch-label" for="novelty"></label>
-        </div> &nbsp;&nbsp;&nbsp; Novelty
-    </div>
-
-    <div class="setting" style="margin-top:2px">
-        <div class="onoffswitch">
-            <input onchange="onChange(this)" type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="electronic" checked>
-            <label class="onoffswitch-label" for="electronic"></label>
-        </div> &nbsp;&nbsp;&nbsp; Electronic
-    </div>
-
-    <div class="setting" style="margin-top:2px">
-        <div class="onoffswitch">
-            <input onchange="onChange(this)" type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="other" checked>
-            <label class="onoffswitch-label" for="other"></label>
-        </div> &nbsp;&nbsp;&nbsp; Other
-    </div>
-
-    <!--
-	<div class="settings-group" style="margin-top: 30px; font-family: NotoRegular; font-size: 18px">Mirrors</div>
-
-
-	<div class="setting" style="margin-top:15px">
-        <div class="onoffswitch">
-            <input onchange="onChangeMirror(this.id)" type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="bloodcat_mirror">
-            <label class="onoffswitch-label" for="bloodcat_mirror"></label>
-        </div> &nbsp;&nbsp;&nbsp; Bloodcat
-    </div>
-
-	<div class="setting" style="margin-top:2px">
         <div class="onoffswitch">
             <input onchange="onChangeMirror(this.id)" type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="hexide_mirror">
             <label class="onoffswitch-label" for="hexide_mirror"></label>
         </div> &nbsp;&nbsp;&nbsp; Hexide
     </div>
 
-	<script>
-		var hexideMirror = document.getElementById("hexide_mirror");
-		var bloodcatMirror = document.getElementById("bloodcat_mirror"); 
+    <script>
+        var hexideMirror = document.getElementById("hexide_mirror");
+        var bloodcatMirror = document.getElementById("bloodcat_mirror");
 
-		function onChangeMirror(id) {
-			if (id == "hexide_mirror") {
-				hexideMirror.checked = true;
-				bloodcatMirror.checked = false;
-				onChange(hexideMirror);
-			} else if (id == "bloodcat_mirror") {
-				hexideMirror.checked = false;
-				bloodcatMirror.checked = true;
-				onChange(bloodcatMirror);
-			}
-		}
+        function onChangeMirror(id) {
+            if (id == "hexide_mirror") {
+                hexideMirror.checked = true;
+                bloodcatMirror.checked = false;
+                onChange(hexideMirror);
+            } else if (id == "bloodcat_mirror") {
+                hexideMirror.checked = false;
+                bloodcatMirror.checked = true;
+                onChange(bloodcatMirror);
+            }
+        }
     </script>
     -->
-	
-	<div class="settings-group" style="margin-top: 30px; font-family: NotoRegular; font-size: 18px">Server</div>
 
-	<div class="setting" style="margin-top:15px">
-        <div class="onoffswitch">
-            <input onchange="onChange(this)" type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="ripple">
-            <label class="onoffswitch-label" for="ripple"></label>
-        </div> &nbsp;&nbsp;&nbsp; Ripple
+        <div class="settings-group" style="margin-top: 30px; font-family: NotoRegular; font-size: 18px">Server</div>
+
+        <div class="setting" style="margin-top:15px">
+            <div class="onoffswitch">
+                <input onchange="onChange(this)" type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="ripple">
+                <label class="onoffswitch-label" for="ripple"></label>
+            </div> &nbsp;&nbsp;&nbsp; Ripple
+        </div>
+
+        <div style="margin-top:20px;padding-left: 25px; text-align: left;">Developed by Zusupe Team <br><br> This program is not affiliated with the game osu! <br><br> All credits to Dean Herbert.<br><br>The mirror used for the beatmap downloader is Bloodcat. <br><br> The program is released under <a onclick="cSharpTools.openUrl('https://github.com/AlexS4v/ORB4/blob/master/LICENSE');">MIT License</a></div>
+        <div style="width: 100%; height: 50px;"></div>
+
     </div>
 
-    <div style="margin-top:20px;padding-left: 25px; text-align: left;">Developed by Zusupe Team <br><br> This program is not affiliated with the game osu! <br><br> All credits to Dean Herbert.<br><br>The mirror used for the beatmap downloader is Bloodcat. <br><br> The program is released under <a onclick="cSharpTools.openUrl('https://github.com/AlexS4v/ORB4/blob/master/LICENSE');">MIT License</a></div>
-	<div style="width: 100%; height: 50px;"></div>
 
-	</div>
-
-	
 </body>
 
 </html>

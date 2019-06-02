@@ -22,8 +22,13 @@ namespace ORB4
             Hexide, Bloodcat
         }
 
-        public const string Version = "4.2.3S";
-        public const string UpdateKey = "f5acf72153a5431f0191c1c75a0afb6955cb812e1209567dc5e65394f7838dcc";
+#if TESTING
+        public const string Version = "310519T";
+        public const string UpdateKey = "9abb50fcb5f7a2f7daa7accd9a33df39";
+#else
+        public const string Version = "4.2.4S";
+        public const string UpdateKey = "cd7b35e3ddb718bfccad833fe846d9c5";
+#endif
 
         public const int MaxRequestsPerMinuteBancho = 1200;
         public const int MaxRequestsPerMinuteRipple = 1200;
@@ -558,12 +563,15 @@ namespace ORB4
             public float MaxStars { get; set; } = 100;
             public float MinStars { get; set; } = 0;
 
+            public bool BCDownloadFromCDN { get; set; } 
+            public bool BCRemoveVideoStoryboard { get; set; }
+            public bool BCRemoveSkin { get; set; }
+
             public bool Ripple { get; set; } = false;
             public bool AnyDifficulty { get; set; } = true;
             public bool AnyLength { get; set; } = true;
             public bool AnyBPM { get; set; } = true;
             public bool NightMode { get; set; } = false;
-
 
             public static Settings Load()
             {

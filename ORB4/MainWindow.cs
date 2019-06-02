@@ -75,6 +75,11 @@ namespace ORB4
             return Convert.ToBase64String(_server.Token);
         }
 
+        public void SetClipboard(string data)
+        {
+            _mainWindow.Invoke(new Action(() => { Clipboard.SetText(data); }));
+        }
+
         public void OpenUrl(string url)
         {
             System.Diagnostics.Process.Start(url);

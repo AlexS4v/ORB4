@@ -546,3 +546,27 @@ a {
 	transition: none;
 }
 
+.right-button-menu {
+    padding: 5px;
+    z-index: 10;
+    width: 150px;
+    position: absolute;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 1px 1px 11px 2px rgba(0, 0, 0, 0.472);
+}
+
+.right-button-menu-item {
+    text-align: left;
+    padding: 10px 10px 10px 17.5px;
+    /* background: #5c7171; */
+    background: white;
+    border-radius: 5px 5px 5px 5px;
+    transition: 100ms;
+    color: black;
+}
+
+.right-button-menu-item.mouse-e{
+    color: white;
+    background: rgb(28, 145, 223);
+}

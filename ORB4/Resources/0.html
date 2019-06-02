@@ -26,6 +26,8 @@
         var downloaderFrame;
 
         function checkVersion() {
+            if (version == "TESTING_MODE") return;
+            
             var request = new XMLHttpRequest();
             request.open("GET", `http://zusupedl.altervista.org/orb-version`, true);
             request.onreadystatechange = () => {

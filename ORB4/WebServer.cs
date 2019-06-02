@@ -89,6 +89,7 @@ namespace ORB4
                 { "/css/mania_mode_light.png", new HtmlResource(43, "image/png") },
                 { "/css/preview_stop.png", new HtmlResource(50, "image/png") },
                 { "/css/preview_play.png", new HtmlResource(51, "image/png") },
+                { "/rightbuttonmenu.js", new HtmlResource(70, "application/javascript") },
             };
         }
 
@@ -147,7 +148,11 @@ namespace ORB4
 
                     if (resource.Id == 0)
                     {
+#if TESTING
+                        string data = $"<!DOCTYPE html>\r\n<html lang=\"en\">\r\n<head>\r\n<script>const version = \"TESTING_MODE\";</script>\r\n" + Encoding.UTF8.GetString((byte[])Properties.Resources.ResourceManager.GetObject($"_{resource.Id}"));
+#else
                         string data = $"<!DOCTYPE html>\r\n<html lang=\"en\">\r\n<head>\r\n<script>const version = \"{Engine.Version}\";</script>\r\n" + Encoding.UTF8.GetString((byte[])Properties.Resources.ResourceManager.GetObject($"_{resource.Id}")) ;
+#endif
                         bytes = Encoding.UTF8.GetBytes(data);
                     }
                     else
@@ -654,7 +659,9 @@ namespace ORB4
                 new JObject() { { "id", "ripple" }, { "checked", Engine.LocalSettings.Ripple.ToString().ToLower() } },
                 new JObject() { { "id", "night_mode" }, { "checked", Engine.LocalSettings.NightMode.ToString().ToLower() } },
                 new JObject() { { "id", "new_beatmaps" }, { "checked", Engine.LocalSettings.NewBeatmapsB.ToString().ToLower()  } },
-                new JObject() { { "id", "open_in_downloader" }, { "checked", Engine.LocalSettings.OpenInDownloader.ToString().ToLower()  } },
+                new JObject() { { "id", "bc_download_from_cdn" }, { "checked", Engine.LocalSettings.BCDownloadFromCDN.ToString().ToLower()  } },
+                new JObject() { { "id", "bc_remove_video_storyboard" }, { "checked", Engine.LocalSettings.BCRemoveVideoStoryboard.ToString().ToLower()  } },
+                new JObject() { { "id", "bc_remove_skin" }, { "checked", Engine.LocalSettings.BCRemoveSkin.ToString().ToLower()  } },
             };
 
             var modes = Enum.GetValues(typeof(Engine.Modes)).Cast<Engine.Modes>().ToArray();
@@ -825,6 +832,15 @@ namespace ORB4
                 case "open_in_downloader":
                     Engine.LocalSettings.OpenInDownloader = bool.Parse(check);
                     if (Engine.LocalSettings.AutoOpen) Engine.LocalSettings.AutoOpen = false;
+                    break;
+                case "bc_remove_skin":
+                    Engine.LocalSettings.BCRemoveSkin = bool.Parse(check);
+                    break;
+                case "bc_remove_video_storyboard":
+                    Engine.LocalSettings.BCRemoveVideoStoryboard = bool.Parse(check);
+                    break;
+                case "bc_download_from_cdn":
+                    Engine.LocalSettings.BCDownloadFromCDN = bool.Parse(check);
                     break;
                 default:
                     break;

@@ -14,7 +14,6 @@ namespace ORB4
 {
     class BeatmapDownloader
     {
-
         public enum DLStatus
         {
             Pending = 0,
@@ -193,34 +192,36 @@ namespace ORB4
 
         public async Task<string> SearchUnranked(string query, int page)
         {
-            page += 1;
-            SyncAlreadyDownloaded();
-
-            _searchClient.DefaultRequestHeaders.Add("user-agent", $"ORB ({Engine.Version})");
-
-            string json = await
-            (await _searchClient.GetAsync($"https://bloodcat.com/osu/?mod=json&q={query}&c=b&p={page}&s=&m=&g=&l="))
-            .Content.ReadAsStringAsync();
-
-            JArray beatmaps = JArray.Parse(json);
-            JArray beatmaps_patched = new JArray();
-
-            for (int i = beatmaps.Count - 1; i >= 0; i--)
+            try
             {
-                JToken beatmap = beatmaps[i];
+                page += 1;
+                SyncAlreadyDownloaded();
 
-                IEnumerable<DL> dls = _dls.FindAll(x => x.Beatmapset_Id == int.Parse((string)beatmap["id"]));
+                _searchClient.DefaultRequestHeaders.Add("user-agent", $"ORB ({Engine.Version})");
 
-                HashSet<int> mods = new HashSet<int>();
+                string json = await
+                (await _searchClient.GetAsync($"https://bloodcat.com/osu/?mod=json&q={query}&c=b&p={page}&s=&m=&g=&l="))
+                .Content.ReadAsStringAsync();
 
-                var childs = beatmap["beatmaps"];
+                JArray beatmaps = JArray.Parse(json);
+                JArray beatmaps_patched = new JArray();
 
-                int b_id = childs[0]["id"].Value<int>();
+                for (int i = beatmaps.Count - 1; i >= 0; i--)
+                {
+                    JToken beatmap = beatmaps[i];
 
-                foreach (var child in childs)
-                    mods.Add(child["mode"].Value<int>());
+                    IEnumerable<DL> dls = _dls.FindAll(x => x.Beatmapset_Id == int.Parse((string)beatmap["id"]));
 
-                JObject beatmap_patched = new JObject
+                    HashSet<int> mods = new HashSet<int>();
+
+                    var childs = beatmap["beatmaps"];
+
+                    int b_id = childs[0]["id"].Value<int>();
+
+                    foreach (var child in childs)
+                        mods.Add(child["mode"].Value<int>());
+
+                    JObject beatmap_patched = new JObject
                 {
                     { "artist", beatmap["artist"] },
                     { "author", beatmap["creator"] },
@@ -232,43 +233,56 @@ namespace ORB4
                     { "dl_status", dls.Count() != 0 && dls.First().Status != DLStatus.Stopped ? JToken.Parse(JsonConvert.SerializeObject(dls.First())) : JToken.Parse("null")}
                 };
 
-                beatmaps_patched.Add(beatmap_patched);
-            }
+                    beatmaps_patched.Add(beatmap_patched);
+                }
 
-            return beatmaps_patched.ToString(Formatting.None);
+                return beatmaps_patched.ToString(Formatting.None);
+            }
+            catch (HttpRequestException e)
+            {
+                Logger.MainLogger.Log(Logger.LogTypes.Error, e);
+                return "{\"error\" : \"Network error. Check your internet connection.\"}";
+            }
+            catch (Exception e)
+            {
+                Logger.MainLogger.Log(Logger.LogTypes.Error, e);
+                return "{\"error\" : \"Unknown error. Check the log.\"}";
+            }
         }
         
 
         public async Task<string> Search(string query, int page)
         {
-            page += 1;
-            SyncAlreadyDownloaded();
-
-            _searchClient.DefaultRequestHeaders.Add("user-agent", $"ORB ({Engine.Version})");
-
-            string json = await
-            (await _searchClient.GetAsync($"https://bloodcat.com/osu/?mod=json&q={query}&c=b&s=1,2,3,4&p={page}&m=&g=&l="))
-            .Content.ReadAsStringAsync();
-
-            JArray beatmaps = JArray.Parse(json);
-            JArray beatmaps_patched = new JArray();
-
-            for (int i = beatmaps.Count - 1; i >= 0; i--)
+            try
             {
-                JToken beatmap = beatmaps[i];
+                page += 1;
+                SyncAlreadyDownloaded();
 
-                IEnumerable<DL> dls = _dls.FindAll(x => x.Beatmapset_Id == int.Parse((string)beatmap["id"]));
+                _searchClient.DefaultRequestHeaders.Add("user-agent", $"ORB ({Engine.Version})");
 
-                HashSet<int> mods = new HashSet<int>();
+                string json = await
+                (await _searchClient.GetAsync($"https://bloodcat.com/osu/?mod=json&q={query}&c=b&s=1,2,3,4&p={page}&m=&g=&l="))
+                .Content.ReadAsStringAsync();
 
-                var childs = beatmap["beatmaps"];
+                JArray beatmaps = JArray.Parse(json);
+                JArray beatmaps_patched = new JArray();
 
-                int b_id = childs[0]["id"].Value<int>();
+                for (int i = beatmaps.Count - 1; i >= 0; i--)
+                {
+                    JToken beatmap = beatmaps[i];
 
-                foreach (var child in childs)
-                    mods.Add(child["mode"].Value<int>());
+                    IEnumerable<DL> dls = _dls.FindAll(x => x.Beatmapset_Id == int.Parse((string)beatmap["id"]));
 
-                JObject beatmap_patched = new JObject
+                    HashSet<int> mods = new HashSet<int>();
+
+                    var childs = beatmap["beatmaps"];
+
+                    int b_id = childs[0]["id"].Value<int>();
+
+                    foreach (var child in childs)
+                        mods.Add(child["mode"].Value<int>());
+
+                    JObject beatmap_patched = new JObject
                 {
                     { "artist", beatmap["artist"] },
                     { "author", beatmap["creator"] },
@@ -280,10 +294,21 @@ namespace ORB4
                     { "dl_status", dls.Count() != 0 && dls.First().Status != DLStatus.Stopped ? JToken.Parse(JsonConvert.SerializeObject(dls.First())) : JToken.Parse("null")}
                 };
 
-                beatmaps_patched.Add(beatmap_patched);
-            }
+                    beatmaps_patched.Add(beatmap_patched);
+                }
 
-            return beatmaps_patched.ToString(Formatting.None);
+                return beatmaps_patched.ToString(Formatting.None);
+            }
+            catch (HttpRequestException e)
+            {
+                Logger.MainLogger.Log(Logger.LogTypes.Error, e);
+                return "{\"error\" : \"Network error. Check your internet connection.\"}";
+            }
+            catch (Exception e)
+            {
+                Logger.MainLogger.Log(Logger.LogTypes.Error, e);
+                return "{\"error\" : \"Unknown error. Check the log.\"}";
+            }
         }
 
         public async Task<int> Stop(int id)
@@ -382,6 +407,16 @@ namespace ORB4
                 {
                     HttpWebRequest request = (HttpWebRequest)WebRequest.Create(new Uri(dl.Url));
                     request.UserAgent = $"ORB ({Engine.Version})";
+
+                    var settings = new { bg = false,
+                        video = _engine.LocalSettings.BCRemoveVideoStoryboard,
+                        skin = _engine.LocalSettings.BCRemoveSkin,
+                        cdn = _engine.LocalSettings.BCDownloadFromCDN
+                    };
+
+                    string json = JsonConvert.SerializeObject(settings);
+
+                    request.Headers.Add("cookie", $"DLOPT={System.Web.HttpUtility.UrlEncode(json)};");
                     WebResponse response = request.GetResponse();
 
                     string beatmapFilename = dl.Beatmapset_Id.ToString() + " [ORB] " + dl.Artist + " - " + dl.Title;
