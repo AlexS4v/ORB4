@@ -1,11 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27130.2027
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.28922.388
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ORB4", "ORB4\ORB4.csproj", "{E2911021-0BE6-47AC-AD3D-E02D0C96F816}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ORB4.Updater", "ORB4.Updater\ORB4.Updater.csproj", "{1910C8D8-12B4-4C33-B7A7-76D9B45B548E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -29,18 +27,6 @@ Global
 		{E2911021-0BE6-47AC-AD3D-E02D0C96F816}.Testing|Any CPU.Build.0 = Testing|Any CPU
 		{E2911021-0BE6-47AC-AD3D-E02D0C96F816}.Testing|x86.ActiveCfg = Testing|x86
 		{E2911021-0BE6-47AC-AD3D-E02D0C96F816}.Testing|x86.Build.0 = Testing|x86
-		{1910C8D8-12B4-4C33-B7A7-76D9B45B548E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{1910C8D8-12B4-4C33-B7A7-76D9B45B548E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{1910C8D8-12B4-4C33-B7A7-76D9B45B548E}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{1910C8D8-12B4-4C33-B7A7-76D9B45B548E}.Debug|x86.Build.0 = Debug|Any CPU
-		{1910C8D8-12B4-4C33-B7A7-76D9B45B548E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1910C8D8-12B4-4C33-B7A7-76D9B45B548E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{1910C8D8-12B4-4C33-B7A7-76D9B45B548E}.Release|x86.ActiveCfg = Release|Any CPU
-		{1910C8D8-12B4-4C33-B7A7-76D9B45B548E}.Release|x86.Build.0 = Release|Any CPU
-		{1910C8D8-12B4-4C33-B7A7-76D9B45B548E}.Testing|Any CPU.ActiveCfg = Testing|Any CPU
-		{1910C8D8-12B4-4C33-B7A7-76D9B45B548E}.Testing|Any CPU.Build.0 = Testing|Any CPU
-		{1910C8D8-12B4-4C33-B7A7-76D9B45B548E}.Testing|x86.ActiveCfg = Testing|Any CPU
-		{1910C8D8-12B4-4C33-B7A7-76D9B45B548E}.Testing|x86.Build.0 = Testing|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

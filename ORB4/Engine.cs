@@ -23,11 +23,11 @@ namespace ORB4
         }
 
 #if TESTING
-        public const string Version = "310519T";
-        public const string UpdateKey = "9abb50fcb5f7a2f7daa7accd9a33df39";
+        public const string Version = "190719T";
+        public const string UpdateKey = "c448e54b14a51ba8ef9521225f37201d";
 #else
-        public const string Version = "4.2.4S";
-        public const string UpdateKey = "cd7b35e3ddb718bfccad833fe846d9c5";
+        public const string Version = "4.2.5S";
+        public const string UpdateKey = "23b8c340b698778a97c5759ce679bcdb";
 #endif
 
         public const int MaxRequestsPerMinuteBancho = 1200;

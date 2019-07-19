@@ -10,6 +10,7 @@ using System.Windows.Forms;
 using CefSharp;
 using CefSharp.WinForms;
 using CefSharp.Internals;
+using System.Diagnostics;
 
 namespace ORB4
 {
@@ -111,7 +112,7 @@ namespace ORB4
         internal ChromiumWebBrowser _browser;
         WebServer _server;
 
-        public static MainWindow Current; 
+        public static MainWindow Current;
 
         public MainWindow()
         {
@@ -133,8 +134,6 @@ namespace ORB4
 
             if (System.IO.File.Exists($"{AppData}\\ORB\\cef.log"))
                 System.IO.File.Delete($"{AppData}\\ORB\\cef.log");
-            
-
 
             _cefSettings.LogFile = $"{AppData}\\ORB\\cef.log";
             _cefSettings.LogSeverity = LogSeverity.Error | LogSeverity.Info | LogSeverity.Warning;
@@ -164,6 +163,7 @@ namespace ORB4
             }
 
             _browser = new ChromiumWebBrowser($"{_server.Url}html/mainwindow.html") { Dock = DockStyle.Fill };
+
             Logger.MainLogger.Log(Logger.LogTypes.Info, "BrowserObject.Create -> Success");
             _browser.RegisterJsObject("cSharpTools", new CSharpTools(ref _server.Engine, ref Current, ref _server));
             Logger.MainLogger.Log(Logger.LogTypes.Info, "BrowserObject.RegisterJS -> Success");

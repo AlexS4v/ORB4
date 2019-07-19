@@ -131,12 +131,14 @@ namespace ORB4
                     Artist = artist,
                     Title = title,
                     Author = author,
-                    Id = dl_c++,
+                    Id = dl_c + 1,
                     Url = dlLink,
                     Percentage = 0,
                     RankingStatus = rankingStatus,
                     Status = DLStatus.Pending
                 };
+
+                dl_c++;
 
                 _dls.RemoveAll(x => x.Beatmapset_Id == dl.Beatmapset_Id); _dls.Add(dl);
             }
@@ -249,7 +251,6 @@ namespace ORB4
                 return "{\"error\" : \"Unknown error. Check the log.\"}";
             }
         }
-        
 
         public async Task<string> Search(string query, int page)
         {
@@ -316,7 +317,10 @@ namespace ORB4
             DL dl = null;
 
             await _listSemaphore.WaitAsync();
-            try { dl = _dls.First(x => x.Id.Equals(id)); }
+            try
+            {
+                dl = _dls.First(x => x.Id.Equals(id));
+            }
             catch (Exception e)
             {
                 Logger.MainLogger.Log(Logger.LogTypes.Error, e);
@@ -326,6 +330,7 @@ namespace ORB4
 
             if (dl.holdingSemaphore)
             {
+                Console.WriteLine($"Semaphore_Dl: {_dlSemaphore.CurrentCount}");
                 _dlSemaphore.Release();
                 dl.holdingSemaphore = false;
 
@@ -381,9 +386,16 @@ namespace ORB4
             DL dl = null;
 
             await _listSemaphore.WaitAsync();
-            try { dl = _dls.First(x => x.Id.Equals(id)); }
-            catch (Exception e)
-            {
+            try {
+                var holdingSemaphore = _dls.FindAll(x => x.holdingSemaphore);
+                if (_dlSemaphore.CurrentCount + holdingSemaphore.Count != 2)
+                {
+                    _dlSemaphore.Release(2 - _dlSemaphore.CurrentCount);
+                }
+
+                dl = _dls.First(x => x.Id.Equals(id));
+            }
+            catch (Exception e) { 
                 Logger.MainLogger.Log(Logger.LogTypes.Error, e);
                 _listSemaphore.Release(); return;
             }
@@ -460,7 +472,6 @@ namespace ORB4
                             await fs.FlushAsync();
 
                             dl.Status = DLStatus.Success;
-                            SyncAlreadyDownloaded();
                             if (_engine.LocalSettings.SoundEffects)
                             {
                                 Utils.PlayWavAsync(Properties.Resources.Downloaded);
@@ -472,6 +483,8 @@ namespace ORB4
                             }
 
                             dl.holdingSemaphore = false;
+
+                            SyncAlreadyDownloaded();
                         }
                     }
 
