@@ -26,8 +26,8 @@ namespace ORB4
         public const string Version = "190719T";
         public const string UpdateKey = "c448e54b14a51ba8ef9521225f37201d";
 #else
-        public const string Version = "4.2.5S";
-        public const string UpdateKey = "23b8c340b698778a97c5759ce679bcdb";
+        public const string Version = "4.2.6S";
+        public const string UpdateKey = "165b109a3604e5ccf14e47d004d3d238";
 #endif
 
         public const int MaxRequestsPerMinuteBancho = 1200;
@@ -563,7 +563,7 @@ namespace ORB4
             public float MaxStars { get; set; } = 100;
             public float MinStars { get; set; } = 0;
 
-            public bool BCDownloadFromCDN { get; set; } 
+            public bool BCDownloadFromCDN { get; set; }
             public bool BCRemoveVideoStoryboard { get; set; }
             public bool BCRemoveSkin { get; set; }
 
@@ -982,7 +982,7 @@ namespace ORB4
                         {
                             method = (RandomHelper.NextDouble() > 0.5);
 
-                            ChooseId:
+                        ChooseId:
                             id = method ? RandomHelper.Next(71, MaxNumberBetmap) : RandomHelper.Next(1, MaxNumberBeatmapset);
                             char mChar = method ? 'b' : 's';
 
